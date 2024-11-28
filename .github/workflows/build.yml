@@ -1,0 +1,112 @@
+name: Build and Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+jobs:
+  build-and-package:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [windows-latest, macos-latest, ubuntu-latest]
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Rust
+      uses: actions-rust-lang/setup-rust-toolchain@v1
+      with:
+        toolchain: stable
+        override: true
+
+    - name: Build for ${{ matrix.os }}
+      run: cargo build --release
+
+    - name: Create ZIP Archive
+      if: matrix.os == 'windows-latest'
+      run: |
+        $ARCHIVE_NAME = "buaa-x86_64-windows-msvc.zip"
+        Compress-Archive -Path ./target/release/buaa.exe -DestinationPath $ARCHIVE_NAME
+        echo "ARCHIVE_NAME=$ARCHIVE_NAME" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+      shell: pwsh
+
+    - name: Create ZIP Archive
+      if: matrix.os != 'windows-latest'
+      shell: bash
+      run: |
+        if [ "${{ matrix.os }}" == "macos-latest" ]; then
+          ARCHIVE_NAME="buaa-x86_64-apple-darwin.zip"
+        elif [ "${{ matrix.os }}" == "ubuntu-latest" ]; then
+          ARCHIVE_NAME="buaa-x86_64-linux-gnu.zip"
+        fi
+        zip -j "$ARCHIVE_NAME" ./target/release/buaa
+        echo "ARCHIVE_NAME=$ARCHIVE_NAME" >> $GITHUB_ENV
+
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v3
+      env:
+        ARCHIVE_NAME: ${{ env.ARCHIVE_NAME }}
+      with:
+        name: ${{ matrix.os }}
+        path: ./${{ env.ARCHIVE_NAME }}
+
+  release:
+    runs-on: ubuntu-latest
+    needs: build-and-package
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Download Artifacts
+      uses: actions/download-artifact@v3
+      with:
+        path: ./artifacts
+
+    - name: List Downloaded Artifacts
+      run: ls -R ./artifacts
+
+    - name: Extract Changelog
+      id: changelog
+      run: |
+        # Extract the fixed content and the latest changelog
+        FIXED_CONTENT=$(awk '
+          /^# BUAA Cli: Powerful tool to Make BUAA Great Again/ { p=1 }
+          p && /^## \[/ { exit }
+          p { print }
+        ' CHANGELOG.md)
+        LATEST_CHANGELOG=$(awk -v version="${{ github.ref_name }}" '
+          /^## \[/ { if (p) { exit }; if ($2 == "["version"]") { p=1 } }
+          p && /^### / { p2=1 }
+          p && p2 { print }
+        ' CHANGELOG.md)
+        echo "fixed_content<<EOF" >> $GITHUB_ENV
+        echo "$FIXED_CONTENT" >> $GITHUB_ENV
+        echo "EOF" >> $GITHUB_ENV
+        echo "latest_changelog<<EOF" >> $GITHUB_ENV
+        echo "$LATEST_CHANGELOG" >> $GITHUB_ENV
+        echo "EOF" >> $GITHUB_ENV
+
+    - name: Create Release
+      id: create_release
+      uses: softprops/action-gh-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        FIXED_CONTENT: ${{ env.fixed_content }}
+        LATEST_CHANGELOG: ${{ env.latest_changelog }}
+      with:
+        name: "Release: ${{ github.ref_name }}"
+        tag_name: ${{ github.ref_name }}
+        body: |
+          ${{ env.FIXED_CONTENT }}
+
+          ${{ env.LATEST_CHANGELOG }}
+        draft: false
+        prerelease: false
+        files: |
+          ./artifacts/windows-latest/buaa-x86_64-windows-msvc.zip
+          ./artifacts/macos-latest/buaa-x86_64-apple-darwin.zip
+          ./artifacts/ubuntu-latest/buaa-x86_64-linux-gnu.zip
