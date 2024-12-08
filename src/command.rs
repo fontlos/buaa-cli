@@ -44,6 +44,12 @@ pub enum BoyaSub {
     Select { id: u32 },
     /// Drop by ID
     Drop { id: u32 },
+    /// Query statistics information, use `-s` to show selected courses
+    Status {
+        #[arg(short, long)]
+        /// By default, only statistic information is displayed
+        selected: bool,
+    },
 }
 
 #[derive(Parser, Debug)]

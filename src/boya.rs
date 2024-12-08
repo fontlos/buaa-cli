@@ -1,4 +1,4 @@
-use buaa_api::Session;
+use buaa_api::{Session, SessionError};
 use tokio::time::{self, Duration};
 
 use std::io::Write;
@@ -12,7 +12,24 @@ pub async fn login(session: &Session, config: &mut Config) {
             config.boya_token = t;
         }
         Err(e) => {
-            eprintln!("[Error]::<Boya>: Login failed: {}", e);
+            if let SessionError::LoginExpired(_) = e {
+                println!("[Info]::<Boya>: Try refresh SSO token");
+                match session.sso_login(&config.username, &config.password).await {
+                    Ok(_) => {
+                        println!("[Info]::<Boya>: SSO refresh successfully");
+                        match session.boya_login().await {
+                            Ok(t) => {
+                                println!("[Info]::<Boya>: Login successfully");
+                                config.boya_token = t;
+                            }
+                            Err(e) => eprintln!("[Error]::<Boya>: Login failed: {}", e),
+                        }
+                    }
+                    Err(e) => eprintln!("[Error]::<Boya>: SSO Login failed: {}", e),
+                }
+            } else {
+                eprintln!("[Error]::<Boya>: Login failed: {}", e);
+            }
         }
     }
 }
@@ -21,20 +38,31 @@ pub async fn query(session: &Session, config: &mut Config, all: bool) {
     let courses = match session.boya_query_course(&config.boya_token).await {
         Ok(courses) => courses,
         Err(e) => {
-            eprintln!("[Error]::<Boya>: Query failed: {}", e);
-            eprintln!("[Info]::<Boya>: Consider SSO login again");
-            return;
+            if let SessionError::LoginExpired(_) = e {
+                println!("[Info]::<Boya>: Try refresh Boya token");
+                login(session, config).await;
+                match session.boya_query_course(&config.boya_token).await {
+                    Ok(c) => c,
+                    Err(e) => {
+                        eprintln!("[Error]::<Boya>: Query failed: {}", e);
+                        return;
+                    }
+                }
+            } else {
+                eprintln!("[Error]::<Boya>: Query failed: {}", e);
+                return;
+            }
         }
     };
     // 默认显示过滤过的可选课程
     if all {
-        println!("{}", buaa_api::utils::table(&courses));
+        println!("{}", courses);
     } else {
         let time = buaa_api::utils::get_primitive_time();
         let courses = courses
             .iter()
             .filter(|course| {
-                course.capacity.current < course.capacity.max && course.time.select_end > time
+                course.selected || (course.capacity.current < course.capacity.max && course.time.select_end > time)
             })
             .collect::<Vec<_>>();
         println!("{}", buaa_api::utils::table(&courses));
@@ -118,6 +146,60 @@ pub async fn drop(session: &Session, config: &Config, id: u32) {
         Err(e) => {
             eprintln!("[Error]::<Boya>: Drop failed: {}", e);
             eprintln!("[Info]::<Boya>: Consider login again");
+        }
+    }
+}
+
+pub async fn status(session: &Session, config: &mut Config, selected: bool) {
+    if selected {
+        match session.boya_query_selected(&config.boya_token).await {
+            Ok(s) => {
+                println!("[Info]::<Boya>: Selected courses:");
+                println!("{}", s)
+            }
+            Err(e) => {
+                if let SessionError::LoginExpired(_) = e {
+                    println!("[Info]::<Boya>: Try refresh Boya token");
+                    login(session, config).await;
+                    match session.boya_query_selected(&config.boya_token).await {
+                        Ok(c) => {
+                            println!("[Info]::<Boya>: Selected courses:");
+                            println!("{}", c)
+                        },
+                        Err(e) => {
+                            eprintln!("[Error]::<Boya>: Query failed: {}", e);
+                            return;
+                        }
+                    }
+                } else {
+                    eprintln!("[Error]::<Boya>: Query failed: {}", e);
+                }
+            }
+        }
+    } else {
+        match session.boya_query_statistic(&config.boya_token).await {
+            Ok(s) => {
+                println!("[Info]::<Boya>: Statistic information:");
+                println!("{}", s)
+            }
+            Err(e) => {
+                if let SessionError::LoginExpired(_) = e {
+                    println!("[Info]::<Boya>: Try refresh Boya token");
+                    login(session, config).await;
+                    match session.boya_query_statistic(&config.boya_token).await {
+                        Ok(s) => {
+                            println!("[Info]::<Boya>: Statistic information:");
+                            println!("{}", s)
+                        },
+                        Err(e) => {
+                            eprintln!("[Error]::<Boya>: Query failed: {}", e);
+                            return;
+                        }
+                    }
+                } else {
+                    eprintln!("[Error]::<Boya>: Query failed: {}", e);
+                }
+            }
         }
     }
 }

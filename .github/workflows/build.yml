@@ -80,8 +80,7 @@ jobs:
         ' CHANGELOG.md)
         LATEST_CHANGELOG=$(awk -v version="${{ github.ref_name }}" '
           /^## \[/ { if (p) { exit }; if ($2 == "["version"]") { p=1 } }
-          p && /^### / { p2=1 }
-          p && p2 { print }
+          p { print }
         ' CHANGELOG.md)
         echo "fixed_content<<EOF" >> $GITHUB_ENV
         echo "$FIXED_CONTENT" >> $GITHUB_ENV

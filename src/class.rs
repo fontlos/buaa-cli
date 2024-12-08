@@ -1,4 +1,4 @@
-use buaa_api::{ClassCourse, Session};
+use buaa_api::{ClassCourse, Session, SessionError};
 use time::{PrimitiveDateTime, Time};
 use tokio::time::Duration;
 
@@ -13,7 +13,24 @@ pub async fn login(session: &Session, config: &mut Config) {
             config.class_token = t;
         }
         Err(e) => {
-            eprintln!("[Error]::<Smart Classroom>: Login failed: {}", e);
+            if let SessionError::LoginExpired(_) = e {
+                println!("[Info]::<Smart Classroom>: Try refresh SSO token");
+                match session.sso_login(&config.username, &config.password).await {
+                    Ok(_) => {
+                        println!("[Info]::<Smart Classroom>: SSO refresh successfully");
+                        match session.class_login().await {
+                            Ok(t) => {
+                                println!("[Info]::<Smart Classroom>: Login successfully");
+                                config.class_token = t;
+                            }
+                            Err(e) => eprintln!("[Error]::<Smart Classroom>: Login failed: {}", e),
+                        }
+                    }
+                    Err(e) => eprintln!("[Error]::<Smart Classroom>: SSO Login failed: {}", e),
+                }
+            } else {
+                eprintln!("[Error]::<Smart Classroom>: Login failed: {}", e);
+            }
         }
     }
 }

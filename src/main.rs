@@ -43,6 +43,9 @@ async fn main() {
             BoyaSub::Drop { id } => {
                 boya::drop(&session, &config, id).await;
             }
+            BoyaSub::Status { selected } => {
+                boya::status(&session, &mut config, selected).await;
+            }
         },
         Commands::Class(Class { command }) => match command {
             ClassSub::Login => {

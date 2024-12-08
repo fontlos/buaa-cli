@@ -71,6 +71,10 @@ buaa boya query
 buaa boya select <ID>
 # Drop a course directly by ID
 buaa boya drop  <ID>
+# Query statistics information
+buaa boya status
+# Query selected courses
+buaa boya status --selected
 ```
 
 ## Smart Classroom
