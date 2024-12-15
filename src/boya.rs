@@ -1,26 +1,23 @@
-use buaa_api::{Session, SessionError};
+use buaa_api::{Context, Error};
 use tokio::time::{self, Duration};
 
 use std::io::Write;
 
-use crate::Config;
-
-pub async fn login(session: &Session, config: &mut Config) {
-    match session.boya_login().await {
-        Ok(t) => {
+pub async fn login(context: &Context) {
+    let boya = context.boya();
+    match boya.login().await {
+        Ok(()) => {
             println!("[Info]::<Boya>: Login successfully");
-            config.boya_token = t;
         }
         Err(e) => {
-            if let SessionError::LoginExpired(_) = e {
+            if let Error::LoginExpired(_) = e {
                 println!("[Info]::<Boya>: Try refresh SSO token");
-                match session.sso_login(&config.username, &config.password).await {
+                match context.login().await {
                     Ok(_) => {
                         println!("[Info]::<Boya>: SSO refresh successfully");
-                        match session.boya_login().await {
-                            Ok(t) => {
+                        match boya.login().await {
+                            Ok(()) => {
                                 println!("[Info]::<Boya>: Login successfully");
-                                config.boya_token = t;
                             }
                             Err(e) => eprintln!("[Error]::<Boya>: Login failed: {}", e),
                         }
@@ -34,14 +31,15 @@ pub async fn login(session: &Session, config: &mut Config) {
     }
 }
 
-pub async fn query(session: &Session, config: &mut Config, all: bool) {
-    let courses = match session.boya_query_course(&config.boya_token).await {
+pub async fn query(context: &Context, all: bool) {
+    let boya = context.boya();
+    let courses = match boya.query_course().await {
         Ok(courses) => courses,
         Err(e) => {
-            if let SessionError::LoginExpired(_) = e {
+            if let Error::LoginExpired(_) = e {
                 println!("[Info]::<Boya>: Try refresh Boya token");
-                login(session, config).await;
-                match session.boya_query_course(&config.boya_token).await {
+                login(context).await;
+                match boya.query_course().await {
                     Ok(c) => c,
                     Err(e) => {
                         eprintln!("[Error]::<Boya>: Query failed: {}", e);
@@ -91,17 +89,15 @@ pub async fn query(session: &Session, config: &mut Config, all: bool) {
         println!("[Info]::<Boya>: Waiting for {} seconds", second);
         time::sleep(duration).await;
         // 可能 token 已经过期重新获取一下
-        let token = match session.boya_login().await {
-            Ok(s) => {
+        match boya.login().await {
+            Ok(()) => {
                 println!("[Info]::<Boya>: Refresh token successfully");
-                s
             }
             Err(e) => {
                 eprintln!("[Info]::<Boya>: Refresh token failed: {}", e);
                 return;
             }
         };
-        config.boya_token = token;
     }
 
     // 之前少等待了10秒, 现在计算还需等待多久
@@ -113,15 +109,16 @@ pub async fn query(session: &Session, config: &mut Config, all: bool) {
         time::sleep(duration).await;
     }
 
-    choose(session, config, id).await;
+    choose(context, id).await;
 }
 
-pub async fn choose(session: &Session, config: &Config, id: u32) {
+pub async fn choose(context: &Context, id: u32) {
+    let boya = context.boya();
     let retry = 20;
     let retry_interval = Duration::from_millis(250);
     let mut interval = time::interval(retry_interval);
     for i in 0..retry {
-        match session.boya_select_course(&config.boya_token, id).await {
+        match boya.select_course(id).await {
             Ok(_) => {
                 println!("[Info]::<Boya>: Select successfully");
                 return;
@@ -138,8 +135,9 @@ pub async fn choose(session: &Session, config: &Config, id: u32) {
     }
 }
 
-pub async fn drop(session: &Session, config: &Config, id: u32) {
-    match session.boya_drop_course(&config.boya_token, id).await {
+pub async fn drop(context: &Context, id: u32) {
+    let boya = context.boya();
+    match boya.drop_course(id).await {
         Ok(_) => {
             println!("[Info]::<Boya>: Drop successfully");
         }
@@ -150,18 +148,19 @@ pub async fn drop(session: &Session, config: &Config, id: u32) {
     }
 }
 
-pub async fn status(session: &Session, config: &mut Config, selected: bool) {
+pub async fn status(context: &Context, selected: bool) {
+    let boya = context.boya();
     if selected {
-        match session.boya_query_selected(&config.boya_token).await {
+        match boya.query_selected().await {
             Ok(s) => {
                 println!("[Info]::<Boya>: Selected courses:");
                 println!("{}", s)
             }
             Err(e) => {
-                if let SessionError::LoginExpired(_) = e {
+                if let Error::LoginExpired(_) = e {
                     println!("[Info]::<Boya>: Try refresh Boya token");
-                    login(session, config).await;
-                    match session.boya_query_selected(&config.boya_token).await {
+                    login(context).await;
+                    match boya.query_selected().await {
                         Ok(c) => {
                             println!("[Info]::<Boya>: Selected courses:");
                             println!("{}", c)
@@ -177,16 +176,16 @@ pub async fn status(session: &Session, config: &mut Config, selected: bool) {
             }
         }
     } else {
-        match session.boya_query_statistic(&config.boya_token).await {
+        match boya.query_statistic().await {
             Ok(s) => {
                 println!("[Info]::<Boya>: Statistic information:");
                 println!("{}", s)
             }
             Err(e) => {
-                if let SessionError::LoginExpired(_) = e {
+                if let Error::LoginExpired(_) = e {
                     println!("[Info]::<Boya>: Try refresh Boya token");
-                    login(session, config).await;
-                    match session.boya_query_statistic(&config.boya_token).await {
+                    login(context).await;
+                    match boya.query_statistic().await {
                         Ok(s) => {
                             println!("[Info]::<Boya>: Statistic information:");
                             println!("{}", s)

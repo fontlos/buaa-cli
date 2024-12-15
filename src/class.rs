@@ -1,27 +1,24 @@
-use buaa_api::{ClassCourse, Session, SessionError};
+use buaa_api::{ClassCourse, Context, Error};
 use time::{PrimitiveDateTime, Time};
 use tokio::time::Duration;
 
 use std::fs::OpenOptions;
 
-use crate::Config;
-
-pub async fn login(session: &Session, config: &mut Config) {
-    match session.class_login().await {
-        Ok(t) => {
+pub async fn login(context: &Context) {
+    let class = context.class();
+    match class.login().await {
+        Ok(()) => {
             println!("[Info]::<Smart Classroom>: Login successfully");
-            config.class_token = t;
         }
         Err(e) => {
-            if let SessionError::LoginExpired(_) = e {
+            if let Error::LoginExpired(_) = e {
                 println!("[Info]::<Smart Classroom>: Try refresh SSO token");
-                match session.sso_login(&config.username, &config.password).await {
+                match context.login().await {
                     Ok(_) => {
                         println!("[Info]::<Smart Classroom>: SSO refresh successfully");
-                        match session.class_login().await {
-                            Ok(t) => {
+                        match class.login().await {
+                            Ok(()) => {
                                 println!("[Info]::<Smart Classroom>: Login successfully");
-                                config.class_token = t;
                             }
                             Err(e) => eprintln!("[Error]::<Smart Classroom>: Login failed: {}", e),
                         }
@@ -35,23 +32,25 @@ pub async fn login(session: &Session, config: &mut Config) {
     }
 }
 
-pub async fn auto(session: &Session) {
+pub async fn auto(context: &Context) {
+    let spoc = context.spoc();
+    let class = context.class();
     // 从 Spoc 获取今日课表
-    let token = match session.spoc_login().await {
-        Ok(t) => t,
+    match spoc.login().await {
+        Ok(()) => (),
         Err(e) => {
             eprintln!("[Error]: Spoc Login failed: {}", e);
             return;
         }
     };
-    let week = match session.spoc_get_week(&token).await {
+    let week = match spoc.get_week().await {
         Ok(w) => w,
         Err(e) => {
             eprintln!("[Error]: Spoc Get week failed: {}", e);
             return;
         }
     };
-    let week_schedule = match session.spoc_get_week_schedule(&token, &week).await {
+    let week_schedule = match spoc.get_week_schedule(&week).await {
         Ok(ws) => ws,
         Err(e) => {
             eprintln!("[Error]: Spoc Get week schedule failed: {}", e);
@@ -67,8 +66,8 @@ pub async fn auto(session: &Session) {
         .collect::<Vec<_>>();
 
     // 获取学期课表
-    let token = match session.class_login().await {
-        Ok(t) => t,
+    match class.login().await {
+        Ok(()) => (),
         Err(e) => {
             eprintln!("[Error]::<Smart Classroom>: Login failed: {}", e);
             return;
@@ -76,7 +75,7 @@ pub async fn auto(session: &Session) {
     };
     // 2024-20251 -> 202420251
     let term = week.term.replace("-", "");
-    let term_schedule = match session.class_query_course(&token, &term).await {
+    let term_schedule = match class.query_course(&term).await {
         Ok(ts) => ts,
         Err(e) => {
             eprintln!("[Error]::<Smart Classroom>: Query term course failed: {}", e);
@@ -92,7 +91,7 @@ pub async fn auto(session: &Session) {
                 let duration = target - now;
                 let second = duration.whole_seconds();
                 println!("[Info]::<Smart Classroom>: Checkin for {}", s.name);
-                checkin_delay(&session, &token, &s.id, second).await;
+                checkin_delay(&context, &s.id, second).await;
                 break;
             }
         }
@@ -100,14 +99,15 @@ pub async fn auto(session: &Session) {
     println!("[Info]::<Smart Classroom>: Auto checkin finished");
 }
 
-pub async fn query(session: &Session, token: &str, id: Option<String>) {
+pub async fn query(context: &Context, id: Option<String>) {
+    let class = context.class();
     let path = crate::util::get_path("buaa-data-schedule.json").unwrap();
     match id {
         Some(id) => {
             match id.len() {
                 // Course ID
                 5 => {
-                    let s = match session.class_query_schedule(&token, &id).await {
+                    let s = match class.query_schedule(&id).await {
                         Ok(schedule) => schedule,
                         Err(e) => {
                             eprintln!("[Error]::<Smart Classroom>: Query schedule failed: {}", e);
@@ -119,7 +119,7 @@ pub async fn query(session: &Session, token: &str, id: Option<String>) {
                 },
                 // Term ID
                 9 => {
-                    let c = match session.class_query_course(&token, &id).await {
+                    let c = match class.query_course(&id).await {
                         Ok(courses) => courses,
                         Err(e) => {
                             eprintln!("[Error]::<Smart Classroom>: Query course failed: {}", e);
@@ -158,7 +158,8 @@ pub async fn query(session: &Session, token: &str, id: Option<String>) {
     };
 }
 
-pub async fn checkin(session: &Session, token: &str, id: String, time: Option<String>) {
+pub async fn checkin(context: &Context, id: String, time: Option<String>) {
+    let class = context.class();
     let id_type = id.len();
     match id_type {
         // Course ID
@@ -169,12 +170,12 @@ pub async fn checkin(session: &Session, token: &str, id: String, time: Option<St
                 println!("[Info]::<Smart Classroom>: Please input time by `-t`");
                 return
             };
-            checkin_delay(session, &token, &id, second).await;
+            checkin_delay(context, &id, second).await;
             return;
         }
         // Schedule ID
         7 => {
-            match session.class_checkin(&token, &id).await {
+            match class.checkin(&id).await {
                 Ok(_) => {
                     println!("[Info]::<Smart Classroom>: Checkin successfully");
                 }
@@ -204,12 +205,13 @@ fn parse_delay_second(time: String) -> i64 {
 }
 
 /// 延迟签到, 在延迟秒数的基础上加 5 秒, 防止网络延迟
-async fn checkin_delay(session: &Session, token: &str, id: &str, second: i64) {
+async fn checkin_delay(context: &Context, id: &str, second: i64) {
+    let class = context.class();
     if second > 0 {
         println!("[Info]::<Smart Classroom>: Waiting for {} seconds", second);
         tokio::time::sleep(Duration::from_secs((second + 5) as u64)).await;
     }
-    let schedule = match session.class_query_schedule(token, id).await {
+    let schedule = match class.query_schedule(id).await {
         Ok(schedule) => schedule,
         Err(e) => {
             eprintln!("[Error]::<Smart Classroom>: Query schedule failed: {:?}", e);
@@ -217,7 +219,7 @@ async fn checkin_delay(session: &Session, token: &str, id: &str, second: i64) {
         }
     };
     let schedule = schedule.last().unwrap();
-    match session.class_checkin(token, &schedule.id).await {
+    match class.checkin(&schedule.id).await {
         Ok(_) => {
             println!("[Info]::<Smart Classroom>: Checkin successfully");
         }

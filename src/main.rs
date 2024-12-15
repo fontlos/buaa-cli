@@ -1,69 +1,70 @@
 mod boya;
 mod class;
 mod command;
-mod config;
 mod sso;
 mod util;
 mod wifi;
 
-use buaa_api::Session;
+use buaa_api::Context;
 use clap::Parser;
 
 use command::{Boya, BoyaSub, Class, ClassSub, Cli, Commands};
-use config::Config;
 
 #[tokio::main]
 async fn main() {
     let cookie = util::get_path("buaa-cookie.json").unwrap();
-    let mut session = Session::new_in_file(cookie.to_str().unwrap());
-    let mut config = Config::new();
+    let config = crate::util::get_path("buaa-config.json").unwrap();
+    let context = Context::new();
+    context.with_config(&config);
+    context.with_cookies(&cookie);
 
     let cli = Cli::parse();
 
     match cli.command {
         Commands::Login { username, password } => {
             if let Some(un) = username {
-                config.username = un;
-            }
+                context.set_username(&un);
+            };
             if let Some(pw) = password {
-                config.password = pw;
+                context.set_password(&pw);
             }
-            sso::login(&session, &config).await;
+            sso::login(&context).await;
         }
         Commands::Boya(Boya { command }) => match command {
             BoyaSub::Login => {
-                boya::login(&session, &mut config).await;
+                boya::login(&context).await;
             }
             BoyaSub::Query { all } => {
-                boya::query(&session, &mut config, all).await;
+                boya::query(&context, all).await;
             }
             BoyaSub::Select { id } => {
-                boya::choose(&session, &config, id).await;
+                boya::choose(&context, id).await;
             }
             BoyaSub::Drop { id } => {
-                boya::drop(&session, &config, id).await;
+                boya::drop(&context, id).await;
             }
             BoyaSub::Status { selected } => {
-                boya::status(&session, &mut config, selected).await;
+                boya::status(&context, selected).await;
             }
         },
         Commands::Class(Class { command }) => match command {
             ClassSub::Login => {
-                class::login(&session, &mut config).await;
+                class::login(&context).await;
             }
             ClassSub::Auto => {
-                class::auto(&session).await;
+                class::auto(&context).await;
             }
             ClassSub::Query { id } => {
-                class::query(&session, &config.class_token, id).await;
+                class::query(&context, id).await;
             }
             ClassSub::Checkin { id, time } => {
-                class::checkin(&session, &config.class_token, id, time).await;
+                class::checkin(&context, id, time).await;
             }
         },
         Commands::Wifi => {
-            wifi::login(&session, &config).await;
+            wifi::login(&context).await;
         }
     }
-    session.save();
+    context.save();
+    context.save_config(&config);
 }
