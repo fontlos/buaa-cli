@@ -1,5 +1,6 @@
 use buaa_api::{Context, Error};
-use tokio::time::{self, Duration};
+use time::Date;
+use tokio::time::Duration;
 
 use std::io::Write;
 
@@ -60,7 +61,9 @@ pub async fn query(context: &Context, all: bool) {
         let courses = courses
             .iter()
             .filter(|course| {
-                course.selected || (course.capacity.current < course.capacity.max && course.time.select_end > time)
+                course.selected
+                    || (course.capacity.current < course.capacity.max
+                        && course.time.select_end > time)
             })
             .collect::<Vec<_>>();
         println!("{}", buaa_api::utils::table(&courses));
@@ -87,7 +90,7 @@ pub async fn query(context: &Context, all: bool) {
     if second > 10 {
         let duration = Duration::from_secs((second - 10) as u64);
         println!("[Info]::<Boya>: Waiting for {} seconds", second);
-        time::sleep(duration).await;
+        tokio::time::sleep(duration).await;
         // 可能 token 已经过期重新获取一下
         match boya.login().await {
             Ok(()) => {
@@ -106,7 +109,7 @@ pub async fn query(context: &Context, all: bool) {
     let second = duration.whole_seconds();
     if second > 0 {
         let duration = Duration::from_secs(second as u64);
-        time::sleep(duration).await;
+        tokio::time::sleep(duration).await;
     }
 
     choose(context, id).await;
@@ -116,7 +119,7 @@ pub async fn choose(context: &Context, id: u32) {
     let boya = context.boya();
     let retry = 20;
     let retry_interval = Duration::from_millis(250);
-    let mut interval = time::interval(retry_interval);
+    let mut interval = tokio::time::interval(retry_interval);
     for i in 0..retry {
         match boya.select_course(id).await {
             Ok(_) => {
@@ -128,7 +131,11 @@ pub async fn choose(context: &Context, id: u32) {
                     eprintln!("[Error]::<Boya>: Select failed: {}", e);
                     return;
                 }
-                println!("[Info]::<Boya>: Select failed: {}. Retry {} times", e, i + 1);
+                println!(
+                    "[Info]::<Boya>: Select failed: {}. Retry {} times",
+                    e,
+                    i + 1
+                );
             }
         }
         interval.tick().await; // 等待0.25秒
@@ -149,9 +156,25 @@ pub async fn drop(context: &Context, id: u32) {
 }
 
 pub async fn status(context: &Context, selected: bool) {
+    let now = buaa_api::utils::get_primitive_time();
+    let middle = Date::from_calendar_date(now.year(), time::Month::July, 1).unwrap();
+    let now_date = Date::from_calendar_date(now.year(), now.month(), now.day()).unwrap();
+    let (start, end) = if now_date < middle {
+        // 上半年
+        (
+            Date::from_calendar_date(now.year(), time::Month::February, 1).unwrap(),
+            Date::from_calendar_date(now.year(), time::Month::July, 1).unwrap(),
+        )
+    } else {
+        // 下半年
+        (
+            Date::from_calendar_date(now.year(), time::Month::August, 1).unwrap(),
+            Date::from_calendar_date(now.year() + 1, time::Month::January, 1).unwrap(),
+        )
+    };
     let boya = context.boya();
     if selected {
-        match boya.query_selected().await {
+        match boya.query_selected(start, end).await {
             Ok(s) => {
                 println!("[Info]::<Boya>: Selected courses:");
                 println!("{}", s)
@@ -160,11 +183,11 @@ pub async fn status(context: &Context, selected: bool) {
                 if let Error::LoginExpired(_) = e {
                     println!("[Info]::<Boya>: Try refresh Boya token");
                     login(context).await;
-                    match boya.query_selected().await {
+                    match boya.query_selected(start, end).await {
                         Ok(c) => {
                             println!("[Info]::<Boya>: Selected courses:");
                             println!("{}", c)
-                        },
+                        }
                         Err(e) => {
                             eprintln!("[Error]::<Boya>: Query failed: {}", e);
                             return;
@@ -189,7 +212,7 @@ pub async fn status(context: &Context, selected: bool) {
                         Ok(s) => {
                             println!("[Info]::<Boya>: Statistic information:");
                             println!("{}", s)
-                        },
+                        }
                         Err(e) => {
                             eprintln!("[Error]::<Boya>: Query failed: {}", e);
                             return;

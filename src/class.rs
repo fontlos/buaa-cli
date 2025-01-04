@@ -1,4 +1,5 @@
-use buaa_api::{ClassCourse, Context, Error};
+use buaa_api::exports::class::ClassCourse;
+use buaa_api::{Context, Error};
 use time::{PrimitiveDateTime, Time};
 use tokio::time::Duration;
 
@@ -78,7 +79,10 @@ pub async fn auto(context: &Context) {
     let term_schedule = match class.query_course(&term).await {
         Ok(ts) => ts,
         Err(e) => {
-            eprintln!("[Error]::<Smart Classroom>: Query term course failed: {}", e);
+            eprintln!(
+                "[Error]::<Smart Classroom>: Query term course failed: {}",
+                e
+            );
             return;
         }
     };
@@ -111,20 +115,24 @@ pub async fn query(context: &Context, id: Option<String>) {
                         Ok(schedule) => schedule,
                         Err(e) => {
                             eprintln!("[Error]::<Smart Classroom>: Query schedule failed: {}", e);
-                            println!("[Info]::<Smart Classroom>: Consider use `buaa class login` first");
-                            return
+                            println!(
+                                "[Info]::<Smart Classroom>: Consider use `buaa class login` first"
+                            );
+                            return;
                         }
                     };
                     println!("{}", buaa_api::utils::table(&s));
-                },
+                }
                 // Term ID
                 9 => {
                     let c = match class.query_course(&id).await {
                         Ok(courses) => courses,
                         Err(e) => {
                             eprintln!("[Error]::<Smart Classroom>: Query course failed: {}", e);
-                            println!("[Info]::<Smart Classroom>: Consider use `buaa class login` first");
-                            return
+                            println!(
+                                "[Info]::<Smart Classroom>: Consider use `buaa class login` first"
+                            );
+                            return;
                         }
                     };
                     let file = OpenOptions::new()
@@ -136,22 +144,19 @@ pub async fn query(context: &Context, id: Option<String>) {
                         .unwrap();
                     serde_json::to_writer(file, &c).unwrap();
                     println!("{}", buaa_api::utils::table(&c));
-                },
+                }
                 _ => {
                     println!("[Error]::<Smart Classroom>: Invalid ID");
-                    return
+                    return;
                 }
             }
-        },
+        }
         None => {
             if !path.exists() {
                 println!("[Error]::<Smart Classroom>: No local data. Use `buaa class query <term>` first");
-                return
+                return;
             }
-            let file = OpenOptions::new()
-                .read(true)
-                .open(path)
-                .unwrap();
+            let file = OpenOptions::new().read(true).open(path).unwrap();
             let courses: Vec<ClassCourse> = serde_json::from_reader(file).unwrap();
             println!("{}", buaa_api::utils::table(&courses));
         }
@@ -168,7 +173,7 @@ pub async fn checkin(context: &Context, id: String, time: Option<String>) {
                 parse_delay_second(time)
             } else {
                 println!("[Info]::<Smart Classroom>: Please input time by `-t`");
-                return
+                return;
             };
             checkin_delay(context, &id, second).await;
             return;
@@ -183,11 +188,11 @@ pub async fn checkin(context: &Context, id: String, time: Option<String>) {
                     eprintln!("[Error]::<Smart Classroom>: Checkin failed: {}", e);
                 }
             }
-            return
+            return;
         }
         _ => {
             println!("[Error]::<Smart Classroom>: Invalid ID");
-            return
+            return;
         }
     }
 }

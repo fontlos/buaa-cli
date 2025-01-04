@@ -21,7 +21,7 @@ pub enum Commands {
     #[command(about = "Smart Classroom")]
     Class(Class),
     #[command(about = "Wifi Login")]
-    Wifi,
+    Wifi(Wifi),
 }
 
 #[derive(Parser, Debug)]
@@ -77,4 +77,16 @@ pub enum ClassSub {
         /// Delay time. eg. '0800' means 8:00 am.
         time: Option<String>,
     },
+}
+
+#[derive(Parser, Debug)]
+pub struct Wifi {
+    #[clap(subcommand)]
+    pub command: WifiSub,
+}
+
+#[derive(Debug, Subcommand)]
+pub enum WifiSub {
+    Login,
+    Logout,
 }

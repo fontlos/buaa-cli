@@ -1,6 +1,7 @@
 mod boya;
 mod class;
 mod command;
+mod evaluation;
 mod sso;
 mod util;
 mod wifi;
@@ -8,7 +9,7 @@ mod wifi;
 use buaa_api::Context;
 use clap::Parser;
 
-use command::{Boya, BoyaSub, Class, ClassSub, Cli, Commands};
+use command::{Boya, BoyaSub, Class, ClassSub, Cli, Commands, Wifi, WifiSub};
 
 #[tokio::main]
 async fn main() {
@@ -61,10 +62,15 @@ async fn main() {
                 class::checkin(&context, id, time).await;
             }
         },
-        Commands::Wifi => {
-            wifi::login(&context).await;
-        }
+        Commands::Wifi(Wifi { command }) => match command {
+            WifiSub::Login => {
+                wifi::login(&context).await;
+            }
+            WifiSub::Logout => {
+                wifi::logout(&context).await;
+            }
+        },
     }
-    context.save();
+    context.save_cookie(&cookie);
     context.save_config(&config);
 }

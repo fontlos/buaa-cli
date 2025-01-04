@@ -9,3 +9,11 @@ pub async fn login(context: &Context) {
         Err(e) => eprintln!("[Info]::<WIFI>: Login failed: {}", e),
     };
 }
+
+pub async fn logout(context: &Context) {
+    let wifi = context.wifi();
+    match wifi.logout().await {
+        Ok(_) => println!("[Info]::<WIFI>: Logout successfully"),
+        Err(e) => eprintln!("[Info]::<WIFI>: Logout failed: {}", e),
+    };
+}
