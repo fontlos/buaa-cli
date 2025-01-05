@@ -20,7 +20,9 @@ pub enum Commands {
     Boya(Boya),
     #[command(about = "Smart Classroom")]
     Class(Class),
-    #[command(about = "Wifi Login")]
+    #[command(about = "Teacher Evaluation system")]
+    Evaluation(Evaluation),
+    #[command(about = "Wifi Login & Logout")]
     Wifi(Wifi),
 }
 
@@ -77,6 +79,19 @@ pub enum ClassSub {
         /// Delay time. eg. '0800' means 8:00 am.
         time: Option<String>,
     },
+}
+
+#[derive(Parser, Debug)]
+pub struct Evaluation {
+    #[clap(subcommand)]
+    pub command: EvaluationSub,
+}
+
+#[derive(Debug, Subcommand)]
+pub enum EvaluationSub {
+    Auto,
+    List,
+    Fill,
 }
 
 #[derive(Parser, Debug)]
