@@ -1,4 +1,5 @@
 use buaa_api::{Context, Error};
+use buaa_api::exports::boya::{BoyaCampus, BoyaCapacity, BoyaCourse, BoyaKind, BoyaSelected, BoyaStatistic, BoyaTime};
 use time::Date;
 use tokio::time::Duration;
 
@@ -55,7 +56,7 @@ pub async fn query(context: &Context, all: bool) {
     };
     // 默认显示过滤过的可选课程
     if all {
-        println!("{}", courses);
+        print_course(courses.iter());
     } else {
         let time = buaa_api::utils::get_primitive_time();
         let courses = courses
@@ -64,9 +65,9 @@ pub async fn query(context: &Context, all: bool) {
                 course.selected
                     || (course.capacity.current < course.capacity.max
                         && course.time.select_end > time)
-            })
-            .collect::<Vec<_>>();
-        println!("{}", buaa_api::utils::table(&courses));
+            });
+
+        print_course(courses);
     }
     // 输入 ID 选择课程
     print!("[Info]::<Boya>: Type ID to select course: ");
@@ -177,16 +178,16 @@ pub async fn status(context: &Context, selected: bool) {
         match boya.query_selected(start, end).await {
             Ok(s) => {
                 println!("[Info]::<Boya>: Selected courses:");
-                println!("{}", s)
+                print_selected(&s);
             }
             Err(e) => {
                 if let Error::LoginExpired(_) = e {
                     println!("[Info]::<Boya>: Try refresh Boya token");
                     login(context).await;
                     match boya.query_selected(start, end).await {
-                        Ok(c) => {
+                        Ok(s) => {
                             println!("[Info]::<Boya>: Selected courses:");
-                            println!("{}", c)
+                            print_selected(&s);
                         }
                         Err(e) => {
                             eprintln!("[Error]::<Boya>: Query failed: {}", e);
@@ -202,7 +203,7 @@ pub async fn status(context: &Context, selected: bool) {
         match boya.query_statistic().await {
             Ok(s) => {
                 println!("[Info]::<Boya>: Statistic information:");
-                println!("{}", s)
+                print_statistic(&s);
             }
             Err(e) => {
                 if let Error::LoginExpired(_) = e {
@@ -211,7 +212,7 @@ pub async fn status(context: &Context, selected: bool) {
                     match boya.query_statistic().await {
                         Ok(s) => {
                             println!("[Info]::<Boya>: Statistic information:");
-                            println!("{}", s)
+                            print_statistic(&s);
                         }
                         Err(e) => {
                             eprintln!("[Error]::<Boya>: Query failed: {}", e);
@@ -224,4 +225,129 @@ pub async fn status(context: &Context, selected: bool) {
             }
         }
     }
+}
+
+// ======================= Print BoyaCourse =======================
+
+fn tabled_name(s: &str) -> String {
+    textwrap::wrap(s, 18).join("\n")
+}
+
+fn tabled_position(s: &str) -> String {
+    textwrap::wrap(s, 15).join("\n")
+}
+
+fn tabled_time(time: &BoyaTime) -> String {
+    let format_string = time::format_description::parse("[year].[month].[day] [hour]:[minute]").unwrap();
+
+    let formatted_course_start = time.course_start.format(&format_string).unwrap();
+    let formatted_course_end = time.course_end.format(&format_string).unwrap();
+    let formatted_select_start = time.select_start.format(&format_string).unwrap();
+    let formatted_select_end = time.select_end.format(&format_string).unwrap();
+
+    format!(
+        "             CourseTime\n{} - {}\n             SelectTime\n{} - {}",
+        formatted_course_start, formatted_course_end, formatted_select_start, formatted_select_end
+    )
+}
+
+fn tabled_kind(capacity: &BoyaKind) -> String {
+    match capacity {
+        BoyaKind::Arts => "美育".to_string(),
+        BoyaKind::Ethics => "德育".to_string(),
+        BoyaKind::Labor => "劳动教育".to_string(),
+        BoyaKind::Safety => "安全健康".to_string(),
+        BoyaKind::Other => "其他".to_string(),
+    }
+}
+
+fn tabled_capacity(capacity: &BoyaCapacity) -> String {
+    format!("{} / {}", capacity.current, capacity.max)
+}
+
+fn tabled_campus(capacity: &BoyaCampus) -> String {
+    match capacity {
+        BoyaCampus::XueYuanLu => "学院路".to_string(),
+        BoyaCampus::ShaHe => "沙河".to_string(),
+        BoyaCampus::All => "全部".to_string(),
+        BoyaCampus::Other => "其他".to_string(),
+    }
+}
+
+fn print_course<'a, I>(data: I)
+where
+    I: Iterator<Item = &'a BoyaCourse>,
+{
+    let mut builder = tabled::builder::Builder::new();
+    builder.push_record(["ID", "Course", "Position", "Time", "Kind", "Capacity", "Campus", "State"]);
+    for c in data {
+        builder.push_record([
+            &c.id.to_string(),
+            &tabled_name(&c.name),
+            &tabled_position(&c.position),
+            &tabled_time(&c.time),
+            &tabled_kind(&c.kind),
+            &tabled_capacity(&c.capacity),
+            &tabled_campus(&c.campus),
+            &c.selected.to_string(),
+        ]);
+    }
+    crate::util::print_table(builder);
+}
+
+// ======================= Print BoyaSelected =======================
+
+fn print_selected(data: &Vec<BoyaSelected>) {
+    let mut builder = tabled::builder::Builder::new();
+    builder.push_record(["ID", "Course", "Position", "Time", "Kind"]);
+    for c in data {
+        builder.push_record([
+            &c.id.to_string(),
+            &tabled_name(&c.name),
+            &tabled_position(&c.position),
+            &tabled_time(&c.time),
+            &tabled_kind(&c.kind)
+        ]);
+    }
+    crate::util::print_table(builder);
+}
+
+// ======================= Print BoyaStatistic =======================
+
+fn print_statistic(data: &BoyaStatistic) {
+    let mut builder = tabled::builder::Builder::new();
+    builder.push_record(["Kind", "Require", "Select", "Complete", "Fail", "Undone"]);
+    builder.push_record([
+        &tabled_kind(&BoyaKind::Ethics),
+        &data.ethics.require.to_string(),
+        &data.ethics.select.to_string(),
+        &data.ethics.complete.to_string(),
+        &data.ethics.fail.to_string(),
+        &data.ethics.undone.to_string(),
+    ]);
+    builder.push_record([
+        &tabled_kind(&BoyaKind::Arts),
+        &data.arts.require.to_string(),
+        &data.arts.select.to_string(),
+        &data.arts.complete.to_string(),
+        &data.arts.fail.to_string(),
+        &data.arts.undone.to_string(),
+    ]);
+    builder.push_record([
+        &tabled_kind(&BoyaKind::Labor),
+        &data.labor.require.to_string(),
+        &data.labor.select.to_string(),
+        &data.labor.complete.to_string(),
+        &data.labor.fail.to_string(),
+        &data.labor.undone.to_string(),
+    ]);
+    builder.push_record([
+        &tabled_kind(&BoyaKind::Safety),
+        &data.safety.require.to_string(),
+        &data.safety.select.to_string(),
+        &data.safety.complete.to_string(),
+        &data.safety.fail.to_string(),
+        &data.safety.undone.to_string(),
+    ]);
+    crate::util::print_table(builder);
 }

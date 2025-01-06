@@ -5,11 +5,12 @@ pub async fn list(context: &Context) {
 
     match evaluation.get_evaluation_list().await {
         Ok(list) => {
-            println!("[Info]::<Evaluation>: ======================= List start =======================");
+            let mut builder = tabled::builder::Builder::new();
+            builder.push_record(["Course", "Teacher"]);
             for l in list {
-                println!("[Info]::<Evaluation>: Course name: {} | Teacher name: {}", l.course, l.teacher);
+                builder.push_record([&l.course, &l.teacher]);
             }
-            println!("[Info]::<Evaluation>: ======================== List end ========================");
+            crate::util::print_table(builder);
         }
         Err(e) => {
             eprintln!("[Error]::<Evaluation>: Get list failed: {}", e);

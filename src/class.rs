@@ -111,7 +111,7 @@ pub async fn query(context: &Context, id: Option<String>) {
             match id.len() {
                 // Course ID
                 5 => {
-                    let s = match class.query_schedule(&id).await {
+                    let schedules = match class.query_schedule(&id).await {
                         Ok(schedule) => schedule,
                         Err(e) => {
                             eprintln!("[Error]::<Smart Classroom>: Query schedule failed: {}", e);
@@ -121,11 +121,16 @@ pub async fn query(context: &Context, id: Option<String>) {
                             return;
                         }
                     };
-                    println!("{}", buaa_api::utils::table(&s));
+                    let mut builder = tabled::builder::Builder::new();
+                    builder.push_record(["ID", "Time", "State"]);
+                    for s in schedules {
+                        builder.push_record([&s.id, &s.time.to_string(), &s.state]);
+                    }
+                    crate::util::print_table(builder);
                 }
                 // Term ID
                 9 => {
-                    let c = match class.query_course(&id).await {
+                    let courses = match class.query_course(&id).await {
                         Ok(courses) => courses,
                         Err(e) => {
                             eprintln!("[Error]::<Smart Classroom>: Query course failed: {}", e);
@@ -142,8 +147,13 @@ pub async fn query(context: &Context, id: Option<String>) {
                         .truncate(true)
                         .open(path)
                         .unwrap();
-                    serde_json::to_writer(file, &c).unwrap();
-                    println!("{}", buaa_api::utils::table(&c));
+                    serde_json::to_writer(file, &courses).unwrap();
+                    let mut builder = tabled::builder::Builder::new();
+                    builder.push_record(["ID", "Course", "Teacher"]);
+                    for c in courses {
+                        builder.push_record([&c.id, &c.name, &c.teacher]);
+                    }
+                    crate::util::print_table(builder);
                 }
                 _ => {
                     println!("[Error]::<Smart Classroom>: Invalid ID");
@@ -158,7 +168,13 @@ pub async fn query(context: &Context, id: Option<String>) {
             }
             let file = OpenOptions::new().read(true).open(path).unwrap();
             let courses: Vec<ClassCourse> = serde_json::from_reader(file).unwrap();
-            println!("{}", buaa_api::utils::table(&courses));
+
+            let mut builder = tabled::builder::Builder::new();
+            builder.push_record(["ID", "Course", "Teacher"]);
+            for c in courses {
+                builder.push_record([&c.id, &c.name, &c.teacher]);
+            }
+            crate::util::print_table(builder);
         }
     };
 }
