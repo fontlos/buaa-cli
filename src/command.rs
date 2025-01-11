@@ -89,6 +89,7 @@ pub struct Evaluation {
 
 #[derive(Debug, Subcommand)]
 pub enum EvaluationSub {
+    /// Warning!!! No Tested!!!
     Auto,
     List,
     Fill,

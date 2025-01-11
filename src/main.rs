@@ -64,13 +64,13 @@ async fn main() {
         },
         Commands::Evaluation(Evaluation { command }) => match command {
             EvaluationSub::Auto => {
-                // evaluation
+                evaluation::auto(&context).await;
             }
             EvaluationSub::List => {
                 evaluation::list(&context).await;
             }
             EvaluationSub::Fill => {
-
+                evaluation::fill(&context).await;
             }
         },
         Commands::Wifi(Wifi { command }) => match command {
