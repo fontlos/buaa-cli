@@ -9,7 +9,9 @@ mod wifi;
 use buaa_api::Context;
 use clap::Parser;
 
-use command::{Boya, BoyaSub, Class, ClassSub, Cli, Commands, Evaluation, EvaluationSub, Wifi, WifiSub};
+use command::{
+    Boya, BoyaSub, Class, ClassSub, Cli, Commands, Evaluation, EvaluationSub, Wifi, WifiSub,
+};
 
 #[tokio::main]
 async fn main() {

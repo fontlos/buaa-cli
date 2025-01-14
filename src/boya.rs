@@ -1,5 +1,7 @@
+use buaa_api::exports::boya::{
+    BoyaCampus, BoyaCapacity, BoyaCourse, BoyaKind, BoyaSelected, BoyaStatistic, BoyaTime,
+};
 use buaa_api::{Context, Error};
-use buaa_api::exports::boya::{BoyaCampus, BoyaCapacity, BoyaCourse, BoyaKind, BoyaSelected, BoyaStatistic, BoyaTime};
 use time::Date;
 use tokio::time::Duration;
 
@@ -25,7 +27,7 @@ pub async fn login(context: &Context) {
         Err(e) => {
             eprintln!("[Error]::<Boya>: SSO Login failed: {}", e);
             return;
-        },
+        }
     }
     // SSO 登录成功, 尝试登录 Boya, 失败了就直接返回
     match boya.login().await {
@@ -60,13 +62,10 @@ pub async fn query(context: &Context, all: bool) {
         print_course(courses.iter());
     } else {
         let time = buaa_api::utils::get_primitive_time();
-        let courses = courses
-            .iter()
-            .filter(|course| {
-                course.selected
-                    || (course.capacity.current < course.capacity.max
-                        && course.time.select_end > time)
-            });
+        let courses = courses.iter().filter(|course| {
+            course.selected
+                || (course.capacity.current < course.capacity.max && course.time.select_end > time)
+        });
 
         print_course(courses);
     }
@@ -242,7 +241,8 @@ fn tabled_position(s: &str) -> String {
 }
 
 fn tabled_time(time: &BoyaTime) -> String {
-    let format_string = time::format_description::parse("[year].[month].[day] [hour]:[minute]").unwrap();
+    let format_string =
+        time::format_description::parse("[year].[month].[day] [hour]:[minute]").unwrap();
 
     let formatted_course_start = time.course_start.format(&format_string).unwrap();
     let formatted_course_end = time.course_end.format(&format_string).unwrap();
@@ -283,7 +283,9 @@ where
     I: Iterator<Item = &'a BoyaCourse>,
 {
     let mut builder = tabled::builder::Builder::new();
-    builder.push_record(["ID", "Course", "Position", "Time", "Kind", "Capacity", "Campus", "State"]);
+    builder.push_record([
+        "ID", "Course", "Position", "Time", "Kind", "Capacity", "Campus", "State",
+    ]);
     for c in data {
         builder.push_record([
             &c.id.to_string(),
@@ -310,7 +312,7 @@ fn print_selected(data: &Vec<BoyaSelected>) {
             &tabled_name(&c.name),
             &tabled_position(&c.position),
             &tabled_time(&c.time),
-            &tabled_kind(&c.kind)
+            &tabled_kind(&c.kind),
         ]);
     }
     crate::util::print_table(builder);
