@@ -91,7 +91,11 @@ pub struct Evaluation {
 pub enum EvaluationSub {
     /// Warning!!! No Tested!!!
     Auto,
-    List,
+    List {
+        #[arg(short, long)]
+        /// By default, only unfilled forms are displayed
+        all: bool,
+    },
     Fill,
 }
 

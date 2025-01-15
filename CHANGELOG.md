@@ -1,5 +1,14 @@
 # BUAA Cli: Powerful tool to Make BUAA Great Again
 
+## [v0.1.2] - 2025-1-15
+
+- Feat
+  - Add teacher evaluation system command
+    - `buaa evaluaton list`: list and fill special form
+    - `buaa evaluation fill`: fill all form one by one
+- Refactor
+  - Print table
+
 ## [v0.1.1] - 2024-12-8
 
 - Feat

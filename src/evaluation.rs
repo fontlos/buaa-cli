@@ -32,7 +32,7 @@ pub async fn login(context: &Context) {
     }
 }
 
-pub async fn list(context: &Context) {
+pub async fn list(context: &Context, all: bool) {
     login(context).await;
 
     let evaluation = context.evaluation();
@@ -44,7 +44,11 @@ pub async fn list(context: &Context) {
         }
     };
 
-    let list = list.into_iter().filter(|l| !l.state).collect::<Vec<_>>();
+    let list = if all {
+        list
+    } else {
+        list.into_iter().filter(|l| !l.state).collect::<Vec<_>>()
+    };
 
     let mut builder = tabled::builder::Builder::new();
     builder.push_record(["Course", "Teacher", "State"]);
@@ -192,11 +196,22 @@ pub async fn fill(context: &Context) {
             }
         }
         let complete = form.fill(ans);
+
+        print!(
+            "[Info]::<Evaluation>: Finall score is {}. Press Enter to submit",
+            complete.score()
+        );
+        std::io::stdout().flush().unwrap();
+        let _ = std::io::stdin().read_line(&mut String::new()).unwrap();
+
         match evaluation.submit_evaluation(complete).await {
             Ok(_) => println!("[Info]::<Evaluation>: Submit successfully"),
             Err(e) => eprintln!("[Error]::<Evaluation>: Submit failed: {}", e),
         }
     }
+    println!(
+        "[Info]::<Evaluation>: ======================== Manual fill end ========================"
+    );
 }
 
 pub async fn auto(context: &Context) {
@@ -206,43 +221,48 @@ pub async fn auto(context: &Context) {
     );
     let evaluation = context.evaluation();
 
-    let list = match evaluation.get_evaluation_list().await {
-        Ok(list) => list,
+    let _list = match evaluation.get_evaluation_list().await {
+        Ok(list) => list.into_iter().filter(|item| !item.state).collect::<Vec<EvaluationListItem>>(),
         Err(e) => {
             eprintln!("[Error]::<Evaluation>: Get list failed: {}", e);
             return;
         }
     };
 
-    for l in list {
-        println!(
-            "[Info]::<Evaluation>: Course: {}, Teacher: {}",
-            l.course, l.teacher
-        );
-        let form = match evaluation.get_evaluation_form(&l).await {
-            Ok(f) => f,
-            Err(e) => {
-                eprintln!("[Error]::<Evaluation>: Get form failed: {}", e);
-                return;
-            }
-        };
-        let mut ans: Vec<EvaluationAnswer> = Vec::with_capacity(form.questions.len());
-        for (i, q) in form.questions.iter().enumerate() {
-            println!("[Info]::<Evaluation>: {}. {}", i + 1, q.name);
-            if q.is_choice {
-                if i == 0 {
-                    ans.push(EvaluationAnswer::Choice(1));
-                } else {
-                    ans.push(EvaluationAnswer::Choice(0));
-                }
-            } else {
-                ans.push(EvaluationAnswer::Completion("".to_string()));
-            }
-        }
-        let complete = form.fill(ans);
-        match evaluation.submit_evaluation(complete).await {
-            Ok(_) => println!("[Info]::<Evaluation>: Submit successfully"),
-            Err(e) => eprintln!("[Error]::<Evaluation>: Submit failed: {}", e),
-        }
-    }
+    todo!("Warning!!! This function is not work as expected, and it will be fixed untill the next term");
+
+    // for l in list {
+    //     println!(
+    //         "[Info]::<Evaluation>: Course: {}, Teacher: {}",
+    //         l.course, l.teacher
+    //     );
+    //     let form = match evaluation.get_evaluation_form(&l).await {
+    //         Ok(f) => f,
+    //         Err(e) => {
+    //             eprintln!("[Error]::<Evaluation>: Get form failed: {}", e);
+    //             return;
+    //         }
+    //     };
+    //     let mut ans: Vec<EvaluationAnswer> = Vec::with_capacity(form.questions.len());
+    //     for (i, q) in form.questions.iter().enumerate() {
+    //         if q.is_choice {
+    //             if i == 0 {
+    //                 ans.push(EvaluationAnswer::Choice(1));
+    //             } else {
+    //                 ans.push(EvaluationAnswer::Choice(0));
+    //             }
+    //         } else {
+    //             ans.push(EvaluationAnswer::Completion("".to_string()));
+    //         }
+    //     }
+    //     let complete = form.fill(ans);
+    //     println!("[Info]::<Evaluation>: Finall score is {}", complete.score());
+    //     match evaluation.submit_evaluation(complete).await {
+    //         Ok(_) => println!("[Info]::<Evaluation>: Submit successfully"),
+    //         Err(e) => eprintln!("[Error]::<Evaluation>: Submit failed: {}", e),
+    //     }
+    // }
+    // println!(
+    //     "[Info]::<Evaluation>: ======================== Auto fill end ========================"
+    // );
 }

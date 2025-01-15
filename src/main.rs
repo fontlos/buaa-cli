@@ -68,8 +68,8 @@ async fn main() {
             EvaluationSub::Auto => {
                 evaluation::auto(&context).await;
             }
-            EvaluationSub::List => {
-                evaluation::list(&context).await;
+            EvaluationSub::List { all } => {
+                evaluation::list(&context, all).await;
             }
             EvaluationSub::Fill => {
                 evaluation::fill(&context).await;
