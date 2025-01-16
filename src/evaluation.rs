@@ -215,13 +215,17 @@ pub async fn fill(context: &Context) {
 }
 
 pub async fn auto(context: &Context) {
+    print!("Warning!!! This function maybe not work as expected, and it will be fixed untill the next term. Press Enter to continue");
+    std::io::stdout().flush().unwrap();
+    let _ = std::io::stdin().read_line(&mut String::new()).unwrap();
+
     login(context).await;
     println!(
         "[Info]::<Evaluation>: ======================= Auto fill start ======================="
     );
     let evaluation = context.evaluation();
 
-    let _list = match evaluation.get_evaluation_list().await {
+    let list = match evaluation.get_evaluation_list().await {
         Ok(list) => list.into_iter().filter(|item| !item.state).collect::<Vec<EvaluationListItem>>(),
         Err(e) => {
             eprintln!("[Error]::<Evaluation>: Get list failed: {}", e);
@@ -229,40 +233,38 @@ pub async fn auto(context: &Context) {
         }
     };
 
-    todo!("Warning!!! This function is not work as expected, and it will be fixed untill the next term");
-
-    // for l in list {
-    //     println!(
-    //         "[Info]::<Evaluation>: Course: {}, Teacher: {}",
-    //         l.course, l.teacher
-    //     );
-    //     let form = match evaluation.get_evaluation_form(&l).await {
-    //         Ok(f) => f,
-    //         Err(e) => {
-    //             eprintln!("[Error]::<Evaluation>: Get form failed: {}", e);
-    //             return;
-    //         }
-    //     };
-    //     let mut ans: Vec<EvaluationAnswer> = Vec::with_capacity(form.questions.len());
-    //     for (i, q) in form.questions.iter().enumerate() {
-    //         if q.is_choice {
-    //             if i == 0 {
-    //                 ans.push(EvaluationAnswer::Choice(1));
-    //             } else {
-    //                 ans.push(EvaluationAnswer::Choice(0));
-    //             }
-    //         } else {
-    //             ans.push(EvaluationAnswer::Completion("".to_string()));
-    //         }
-    //     }
-    //     let complete = form.fill(ans);
-    //     println!("[Info]::<Evaluation>: Finall score is {}", complete.score());
-    //     match evaluation.submit_evaluation(complete).await {
-    //         Ok(_) => println!("[Info]::<Evaluation>: Submit successfully"),
-    //         Err(e) => eprintln!("[Error]::<Evaluation>: Submit failed: {}", e),
-    //     }
-    // }
-    // println!(
-    //     "[Info]::<Evaluation>: ======================== Auto fill end ========================"
-    // );
+    for l in list {
+        println!(
+            "[Info]::<Evaluation>: Course: {}, Teacher: {}",
+            l.course, l.teacher
+        );
+        let form = match evaluation.get_evaluation_form(&l).await {
+            Ok(f) => f,
+            Err(e) => {
+                eprintln!("[Error]::<Evaluation>: Get form failed: {}", e);
+                return;
+            }
+        };
+        let mut ans: Vec<EvaluationAnswer> = Vec::with_capacity(form.questions.len());
+        for (i, q) in form.questions.iter().enumerate() {
+            if q.is_choice {
+                if i == 0 {
+                    ans.push(EvaluationAnswer::Choice(1));
+                } else {
+                    ans.push(EvaluationAnswer::Choice(0));
+                }
+            } else {
+                ans.push(EvaluationAnswer::Completion("".to_string()));
+            }
+        }
+        let complete = form.fill(ans);
+        println!("[Info]::<Evaluation>: Finall score is {}", complete.score());
+        match evaluation.submit_evaluation(complete).await {
+            Ok(_) => println!("[Info]::<Evaluation>: Submit successfully"),
+            Err(e) => eprintln!("[Error]::<Evaluation>: Submit failed: {}", e),
+        }
+    }
+    println!(
+        "[Info]::<Evaluation>: ======================== Auto fill end ========================"
+    );
 }
