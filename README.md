@@ -15,6 +15,10 @@ Now throw it in the trash and try this tool
 
 > This project is a derivative of [buaa-api](https://github.com/fontlos/buaa-api)
 
+> 注: 本项目只用于学习分享, 请于下载后 24 小时内删除, 使用产生的一切问题由使用者自行承担, 如有侵权我将删除此储存库和软件
+>
+> Tips: This project is only for learning and sharing, please delete within 24 hours after downloading, all problems caused by the use are borne by the user, if there is any infringement I will delete this repository and software
+
 # Features
 
 - ⚡ Fast
@@ -29,7 +33,7 @@ Now throw it in the trash and try this tool
 
 # Install
 
-1. Download from [release](https://github.com/fontlos/buaa-cli/release)
+1. Download from [release](https://github.com/fontlos/buaa-cli/release) (I'm going to pause providing the latest binaries for a while, so you need to compile by yourself)
 2. Install from source:
    ```sh
    git clone https://github.com/fontlos/buaa-cli
