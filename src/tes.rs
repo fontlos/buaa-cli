@@ -1,32 +1,32 @@
-use buaa_api::exports::evaluation::{EvaluationAnswer, EvaluationListItem};
+use buaa_api::api::tes::{EvaluationAnswer, EvaluationListItem};
 use buaa_api::{Context, Error};
 
 use std::io::Write;
 
 pub async fn login(context: &Context) {
-    let evaluation = context.evaluation();
+    let tes = context.tes();
     // 尝试登录, 如果是登录过期, 就继续执行, 其他错误就直接返回
-    match evaluation.login().await {
+    match tes.login().await {
         Ok(()) => {
-            println!("[Info]::<Evaluation>: Login successfully");
+            println!("[Info]::<TES>: Login successfully");
             return;
         }
-        Err(Error::LoginExpired(_)) => println!("[Info]::<Evaluation>: Try refresh SSO token"),
+        Err(Error::LoginExpired(_)) => println!("[Info]::<TES>: Try refresh SSO token"),
         Err(e) => {
-            eprintln!("[Error]::<Evaluation>: Login failed: {}", e);
+            eprintln!("[Error]::<TES>: Login failed: {}", e);
             return;
         }
     }
     // 如果是登录过期就继续执行到这里, 尝试登录 SSO, 失败了就直接返回
     match context.login().await {
-        Ok(_) => println!("[Info]::<Evaluation>: SSO refresh successfully"),
+        Ok(_) => println!("[Info]::<TES>: SSO refresh successfully"),
         Err(e) => {
-            eprintln!("[Error]::<Evaluation>: SSO Login failed: {}", e);
+            eprintln!("[Error]::<TES>: SSO Login failed: {}", e);
             return;
         }
     }
     // SSO 登录成功, 尝试登录 Boya, 失败了就直接返回
-    match evaluation.login().await {
+    match tes.login().await {
         Ok(()) => println!("[Info]::<Boya>: Login successfully"),
         Err(e) => eprintln!("[Error]::<Boya>: Login failed: {}", e),
     }
@@ -35,11 +35,11 @@ pub async fn login(context: &Context) {
 pub async fn list(context: &Context, all: bool) {
     login(context).await;
 
-    let evaluation = context.evaluation();
-    let list = match evaluation.get_evaluation_list().await {
+    let tes = context.tes();
+    let list = match tes.get_evaluation_list().await {
         Ok(list) => list,
         Err(e) => {
-            eprintln!("[Error]::<Evaluation>: Get list failed: {}", e);
+            eprintln!("[Error]::<TES>: Get list failed: {}", e);
             return;
         }
     };
@@ -57,14 +57,14 @@ pub async fn list(context: &Context, all: bool) {
     }
     crate::util::print_table(builder);
 
-    print!("[Info]::<Evaluation>: Type index to fill: ");
+    print!("[Info]::<TES>: Type index to fill: ");
     std::io::stdout().flush().unwrap();
     let mut str = String::new();
     std::io::stdin().read_line(&mut str).unwrap();
     let index = match str.trim().parse::<usize>() {
         Ok(i) => i,
         Err(e) => {
-            eprintln!("[Error]::<Evaluation>: Invalid index: {}", e);
+            eprintln!("[Error]::<TES>: Invalid index: {}", e);
             return;
         }
     };
@@ -72,26 +72,26 @@ pub async fn list(context: &Context, all: bool) {
     let l = match list.get(index) {
         Some(l) => l,
         None => {
-            eprintln!("[Error]::<Evaluation>: Index out of range");
+            eprintln!("[Error]::<TES>: Index out of range");
             return;
         }
     };
 
     println!(
-        "[Info]::<Evaluation>: Course: {}, Teacher: {}",
+        "[Info]::<TES>: Course: {}, Teacher: {}",
         l.course, l.teacher
     );
-    println!("[Info]::<Evaluation>: Option is score, type the index");
-    let form = match evaluation.get_evaluation_form(&l).await {
+    println!("[Info]::<TES>: Option is score, type the index");
+    let form = match tes.get_evaluation_form(&l).await {
         Ok(f) => f,
         Err(e) => {
-            eprintln!("[Error]::<Evaluation>: Get form failed: {}", e);
+            eprintln!("[Error]::<TES>: Get form failed: {}", e);
             return;
         }
     };
     let mut ans: Vec<EvaluationAnswer> = Vec::with_capacity(form.questions.len());
     for (i, q) in form.questions.iter().enumerate() {
-        println!("[Info]::<Evaluation>: {}. {}", i + 1, q.name);
+        println!("[Info]::<TES>: {}. {}", i + 1, q.name);
         if q.is_choice {
             let mut builder = tabled::builder::Builder::new();
             builder.push_record(["A", "B", "C", "D"]);
@@ -103,7 +103,7 @@ pub async fn list(context: &Context, all: bool) {
             ]);
             crate::util::print_table(builder);
         }
-        print!("[Info]::<Evaluation>: Type answer: ");
+        print!("[Info]::<TES>: Type answer: ");
         std::io::stdout().flush().unwrap();
         let mut str = String::new();
         std::io::stdin().read_line(&mut str).unwrap();
@@ -114,7 +114,7 @@ pub async fn list(context: &Context, all: bool) {
                 "C" | "c" => 2,
                 "D" | "d" => 3,
                 _ => {
-                    eprintln!("[Error]::<Evaluation>: Invalid choice");
+                    eprintln!("[Error]::<TES>: Invalid choice");
                     return;
                 }
             };
@@ -124,23 +124,23 @@ pub async fn list(context: &Context, all: bool) {
         }
     }
     let complete = form.fill(ans);
-    match evaluation.submit_evaluation(complete).await {
-        Ok(_) => println!("[Info]::<Evaluation>: Submit successfully"),
-        Err(e) => eprintln!("[Error]::<Evaluation>: Submit failed: {}", e),
+    match tes.submit_evaluation(complete).await {
+        Ok(_) => println!("[Info]::<TES>: Submit successfully"),
+        Err(e) => eprintln!("[Error]::<TES>: Submit failed: {}", e),
     }
 }
 
 pub async fn fill(context: &Context) {
     login(context).await;
     println!(
-        "[Info]::<Evaluation>: ======================= Manual fill start ======================="
+        "[Info]::<TES>: ======================= Manual fill start ======================="
     );
-    let evaluation = context.evaluation();
+    let tes = context.tes();
 
-    let list = match evaluation.get_evaluation_list().await {
+    let list = match tes.get_evaluation_list().await {
         Ok(list) => list,
         Err(e) => {
-            eprintln!("[Error]::<Evaluation>: Get list failed: {}", e);
+            eprintln!("[Error]::<TES>: Get list failed: {}", e);
             return;
         }
     };
@@ -150,20 +150,20 @@ pub async fn fill(context: &Context) {
 
     for l in list {
         println!(
-            "[Info]::<Evaluation>: Course: {}, Teacher: {}",
+            "[Info]::<TES>: Course: {}, Teacher: {}",
             l.course, l.teacher
         );
-        println!("[Info]::<Evaluation>: Option is score, type the index");
-        let form = match evaluation.get_evaluation_form(&l).await {
+        println!("[Info]::<TES>: Option is score, type the index");
+        let form = match tes.get_evaluation_form(&l).await {
             Ok(f) => f,
             Err(e) => {
-                eprintln!("[Error]::<Evaluation>: Get form failed: {}", e);
+                eprintln!("[Error]::<TES>: Get form failed: {}", e);
                 return;
             }
         };
         let mut ans: Vec<EvaluationAnswer> = Vec::with_capacity(form.questions.len());
         for (i, q) in form.questions.iter().enumerate() {
-            println!("[Info]::<Evaluation>: {}. {}", i + 1, q.name);
+            println!("[Info]::<TES>: {}. {}", i + 1, q.name);
             if q.is_choice {
                 let mut builder = tabled::builder::Builder::new();
                 builder.push_record(["A", "B", "C", "D"]);
@@ -175,7 +175,7 @@ pub async fn fill(context: &Context) {
                 ]);
                 crate::util::print_table(builder);
             }
-            print!("[Info]::<Evaluation>: Type answer: ");
+            print!("[Info]::<TES>: Type answer: ");
             std::io::stdout().flush().unwrap();
             let mut str = String::new();
             std::io::stdin().read_line(&mut str).unwrap();
@@ -186,7 +186,7 @@ pub async fn fill(context: &Context) {
                     "C" | "c" => 2,
                     "D" | "d" => 3,
                     _ => {
-                        eprintln!("[Error]::<Evaluation>: Invalid choice");
+                        eprintln!("[Error]::<TES>: Invalid choice");
                         return;
                     }
                 };
@@ -198,19 +198,19 @@ pub async fn fill(context: &Context) {
         let complete = form.fill(ans);
 
         print!(
-            "[Info]::<Evaluation>: Finall score is {}. Press Enter to submit",
+            "[Info]::<TES>: Finall score is {}. Press Enter to submit",
             complete.score()
         );
         std::io::stdout().flush().unwrap();
         let _ = std::io::stdin().read_line(&mut String::new()).unwrap();
 
-        match evaluation.submit_evaluation(complete).await {
-            Ok(_) => println!("[Info]::<Evaluation>: Submit successfully"),
-            Err(e) => eprintln!("[Error]::<Evaluation>: Submit failed: {}", e),
+        match tes.submit_evaluation(complete).await {
+            Ok(_) => println!("[Info]::<TES>: Submit successfully"),
+            Err(e) => eprintln!("[Error]::<TES>: Submit failed: {}", e),
         }
     }
     println!(
-        "[Info]::<Evaluation>: ======================== Manual fill end ========================"
+        "[Info]::<TES>: ======================== Manual fill end ========================"
     );
 }
 
@@ -221,27 +221,27 @@ pub async fn auto(context: &Context) {
 
     login(context).await;
     println!(
-        "[Info]::<Evaluation>: ======================= Auto fill start ======================="
+        "[Info]::<TES>: ======================= Auto fill start ======================="
     );
-    let evaluation = context.evaluation();
+    let tes = context.tes();
 
-    let list = match evaluation.get_evaluation_list().await {
+    let list = match tes.get_evaluation_list().await {
         Ok(list) => list.into_iter().filter(|item| !item.state).collect::<Vec<EvaluationListItem>>(),
         Err(e) => {
-            eprintln!("[Error]::<Evaluation>: Get list failed: {}", e);
+            eprintln!("[Error]::<TES>: Get list failed: {}", e);
             return;
         }
     };
 
     for l in list {
         println!(
-            "[Info]::<Evaluation>: Course: {}, Teacher: {}",
+            "[Info]::<TES>: Course: {}, Teacher: {}",
             l.course, l.teacher
         );
-        let form = match evaluation.get_evaluation_form(&l).await {
+        let form = match tes.get_evaluation_form(&l).await {
             Ok(f) => f,
             Err(e) => {
-                eprintln!("[Error]::<Evaluation>: Get form failed: {}", e);
+                eprintln!("[Error]::<TES>: Get form failed: {}", e);
                 return;
             }
         };
@@ -258,13 +258,13 @@ pub async fn auto(context: &Context) {
             }
         }
         let complete = form.fill(ans);
-        println!("[Info]::<Evaluation>: Finall score is {}", complete.score());
-        match evaluation.submit_evaluation(complete).await {
-            Ok(_) => println!("[Info]::<Evaluation>: Submit successfully"),
-            Err(e) => eprintln!("[Error]::<Evaluation>: Submit failed: {}", e),
+        println!("[Info]::<TES>: Finall score is {}", complete.score());
+        match tes.submit_evaluation(complete).await {
+            Ok(_) => println!("[Info]::<TES>: Submit successfully"),
+            Err(e) => eprintln!("[Error]::<TES>: Submit failed: {}", e),
         }
     }
     println!(
-        "[Info]::<Evaluation>: ======================== Auto fill end ========================"
+        "[Info]::<TES>: ======================== Auto fill end ========================"
     );
 }

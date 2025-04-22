@@ -21,7 +21,7 @@ pub enum Commands {
     #[command(about = "Smart Classroom")]
     Class(Class),
     #[command(about = "Teacher Evaluation system")]
-    Evaluation(Evaluation),
+    Tes(Tes),
     #[command(about = "Wifi Login & Logout")]
     Wifi(Wifi),
 }
@@ -82,13 +82,13 @@ pub enum ClassSub {
 }
 
 #[derive(Parser, Debug)]
-pub struct Evaluation {
+pub struct Tes {
     #[clap(subcommand)]
-    pub command: EvaluationSub,
+    pub command: TesSub,
 }
 
 #[derive(Debug, Subcommand)]
-pub enum EvaluationSub {
+pub enum TesSub {
     /// Warning!!! No Tested!!!
     Auto,
     List {

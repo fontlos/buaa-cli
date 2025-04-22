@@ -1,4 +1,4 @@
-use buaa_api::exports::class::ClassCourse;
+use buaa_api::api::class::ClassCourse;
 use buaa_api::{Context, Error};
 use time::{PrimitiveDateTime, Time};
 use tokio::time::Duration;

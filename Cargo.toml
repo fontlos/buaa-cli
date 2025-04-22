@@ -4,15 +4,15 @@ version = "0.1.2"
 edition = "2021"
 
 [dependencies]
-buaa_api = { git = "https://github.com/fontlos/buaa-api", rev = "6bda0e3"}
+buaa_api = { git = "https://github.com/fontlos/buaa-api", rev = "50257d1"}
 # buaa_api = { path = "../buaa-api" }
-clap = { version = "4.5.26", features = ["derive"] }
-serde = { version = "1.0.217", features = ["derive"] }
-serde_json = "1.0.135"
-tabled = "0.17.0"
-textwrap = "0.16.1"
-time = "0.3.37"
-tokio = { version = "1.43.0", features = ["full"] }
+clap = { version = "4.5.37", features = ["derive"] }
+serde = { version = "1.0.219", features = ["derive"] }
+serde_json = "1.0.140"
+tabled = "0.18.0"
+textwrap = "0.16.2"
+time = "0.3.41"
+tokio = { version = "1.44.2", features = ["full"] }
 
 [profile.release]
 opt-level = "z"

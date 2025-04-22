@@ -131,7 +131,7 @@ buaa evaluation auto
 You can use the following simple command to connect to **BUAA-WiFi**
 
 ```sh
-buaa wifi
+buaa wifi login
 ```
 
 On the Windows platform, you can use a `.bat` file and add it to the `C:\Users\<Username>\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup` folder, so that you can automatically connect to WiFi at boot

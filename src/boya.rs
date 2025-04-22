@@ -1,4 +1,4 @@
-use buaa_api::exports::boya::{
+use buaa_api::api::boya::{
     BoyaCampus, BoyaCapacity, BoyaCourse, BoyaKind, BoyaSelected, BoyaStatistic, BoyaTime,
 };
 use buaa_api::{Context, Error};

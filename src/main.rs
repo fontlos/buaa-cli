@@ -1,7 +1,7 @@
 mod boya;
 mod class;
 mod command;
-mod evaluation;
+mod tes;
 mod sso;
 mod util;
 mod wifi;
@@ -10,7 +10,7 @@ use buaa_api::Context;
 use clap::Parser;
 
 use command::{
-    Boya, BoyaSub, Class, ClassSub, Cli, Commands, Evaluation, EvaluationSub, Wifi, WifiSub,
+    Boya, BoyaSub, Class, ClassSub, Cli, Commands, Tes, TesSub, Wifi, WifiSub,
 };
 
 #[tokio::main]
@@ -19,17 +19,17 @@ async fn main() {
     let config = crate::util::get_path("buaa-config.json").unwrap();
     let context = Context::new();
     context.with_config(&config);
-    context.with_cookies(&cookie);
+    context.with_cookies(&cookie).unwrap();
 
     let cli = Cli::parse();
 
     match cli.command {
         Commands::Login { username, password } => {
             if let Some(un) = username {
-                context.set_username(&un);
+                context.set_username(&un).unwrap();
             };
             if let Some(pw) = password {
-                context.set_password(&pw);
+                context.set_password(&pw).unwrap();
             }
             sso::login(&context).await;
         }
@@ -64,15 +64,15 @@ async fn main() {
                 class::checkin(&context, id, time).await;
             }
         },
-        Commands::Evaluation(Evaluation { command }) => match command {
-            EvaluationSub::Auto => {
-                evaluation::auto(&context).await;
+        Commands::Tes(Tes { command }) => match command {
+            TesSub::Auto => {
+                tes::auto(&context).await;
             }
-            EvaluationSub::List { all } => {
-                evaluation::list(&context, all).await;
+            TesSub::List { all } => {
+                tes::list(&context, all).await;
             }
-            EvaluationSub::Fill => {
-                evaluation::fill(&context).await;
+            TesSub::Fill => {
+                tes::fill(&context).await;
             }
         },
         Commands::Wifi(Wifi { command }) => match command {
