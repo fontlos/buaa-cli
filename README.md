@@ -116,14 +116,14 @@ buaa class checkin <schedule ID>
 
 ```sh
 # List the forms that need to be filled out and use the index to fill out the specified form
-buaa evaluation list
+buaa tes list
 
 # Fill out all the forms in order
-buaa evaluation fill
+buaa tes fill
 
 # Automatically fill all forms
 # Warning: This command may not be as expected in the test, the score is correct, but it will show an abnormality, and will try to fix it the next time the evaluation system is turned on
-buaa evaluation auto
+buaa tes auto
 ```
 
 ## WiFi
