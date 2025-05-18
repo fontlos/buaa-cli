@@ -15,21 +15,17 @@ use command::{
 
 #[tokio::main]
 async fn main() {
-    let cookie = util::get_path("buaa-cookie.json").unwrap();
-    let config = crate::util::get_path("buaa-config.json").unwrap();
-    let context = Context::new();
-    context.with_config(&config);
-    context.with_cookies(&cookie).unwrap();
+    let context = Context::with_auth("./");
 
     let cli = Cli::parse();
 
     match cli.command {
         Commands::Login { username, password } => {
             if let Some(un) = username {
-                context.set_username(&un).unwrap();
+                context.set_username(&un);
             };
             if let Some(pw) = password {
-                context.set_password(&pw).unwrap();
+                context.set_password(&pw);
             }
             sso::login(&context).await;
         }
@@ -84,6 +80,5 @@ async fn main() {
             }
         },
     }
-    context.save_cookie(&cookie);
-    context.save_config(&config);
+    context.save_auth("./");
 }

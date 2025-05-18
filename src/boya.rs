@@ -61,7 +61,7 @@ pub async fn query(context: &Context, all: bool) {
     if all {
         print_course(courses.iter());
     } else {
-        let time = buaa_api::utils::get_primitive_time();
+        let time = buaa_api::utils::get_datatime();
         let courses = courses.iter().filter(|course| {
             course.selected
                 || (course.capacity.current < course.capacity.max && course.time.select_end > time)
@@ -84,7 +84,7 @@ pub async fn query(context: &Context, all: bool) {
     };
 
     let course = courses.iter().find(|course| course.id == id).unwrap();
-    let now = buaa_api::utils::get_primitive_time();
+    let now = buaa_api::utils::get_datatime();
     let duration = course.time.select_start - now;
     let second = duration.whole_seconds();
     // 如果时间大于 10 那么就等待并提前十秒重置token, 否则直接选课
@@ -105,7 +105,7 @@ pub async fn query(context: &Context, all: bool) {
     }
 
     // 之前少等待了10秒, 现在计算还需等待多久
-    let now = buaa_api::utils::get_primitive_time();
+    let now = buaa_api::utils::get_datatime();
     let duration = course.time.select_start - now;
     let second = duration.whole_seconds();
     if second > 0 {
@@ -157,7 +157,7 @@ pub async fn drop(context: &Context, id: u32) {
 }
 
 pub async fn status(context: &Context, selected: bool) {
-    let now = buaa_api::utils::get_primitive_time();
+    let now = buaa_api::utils::get_datatime();
     let middle = Date::from_calendar_date(now.year(), time::Month::July, 1).unwrap();
     let now_date = Date::from_calendar_date(now.year(), now.month(), now.day()).unwrap();
     let (start, end) = if now_date < middle {

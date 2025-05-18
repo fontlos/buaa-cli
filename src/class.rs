@@ -58,7 +58,7 @@ pub async fn auto(context: &Context) {
             return;
         }
     };
-    let now = buaa_api::utils::get_primitive_time();
+    let now = buaa_api::utils::get_datatime();
     let weekday = now.weekday();
     // 过滤掉已经开始的课程
     let today_schedule = week_schedule
@@ -90,7 +90,7 @@ pub async fn auto(context: &Context) {
     for ts in today_schedule {
         for s in &term_schedule {
             if ts.name == s.name {
-                let now = buaa_api::utils::get_primitive_time();
+                let now = buaa_api::utils::get_datatime();
                 let target = ts.time.start;
                 let duration = target - now;
                 let second = duration.whole_seconds();
@@ -218,7 +218,7 @@ fn parse_delay_second(time: String) -> i64 {
     let hour = time[0..2].parse::<u8>().unwrap();
     let minute = time[2..4].parse::<u8>().unwrap();
     let time = Time::from_hms(hour, minute, 0).unwrap();
-    let now = buaa_api::utils::get_primitive_time();
+    let now = buaa_api::utils::get_datatime();
     let target = PrimitiveDateTime::new(now.date(), time);
     let duration = target - now;
     let second = duration.whole_seconds();
