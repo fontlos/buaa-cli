@@ -1,18 +1,18 @@
 [package]
 name = "buaa"
-version = "0.1.2"
+version = "0.1.3"
 edition = "2024"
 
 [dependencies]
 buaa_api = { git = "https://github.com/fontlos/buaa-api", rev = "1f8c294"}
 # buaa_api = { path = "../buaa-api" }
-clap = { version = "4.5.40", features = ["derive"] }
+clap = { version = "4.5.47", features = ["derive"] }
 serde = { version = "1.0.219", features = ["derive"] }
 serde_json = "1.0.140"
 tabled = "0.20.0"
 textwrap = "0.16.2"
-time = "0.3.41"
-tokio = { version = "1.45.1", features = ["full"] }
+time = "0.3.43"
+tokio = { version = "1.47.1", features = ["full"] }
 
 [profile.release]
 opt-level = "z"

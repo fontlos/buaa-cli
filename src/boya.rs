@@ -1,7 +1,7 @@
 use buaa_api::api::boya::{
     BoyaCampus, BoyaCapacity, BoyaCourse, BoyaKind, BoyaSelected, BoyaStatistic, BoyaTime,
 };
-use buaa_api::{Context, Error};
+use buaa_api::Context;
 use time::Date;
 use tokio::time::Duration;
 
@@ -9,30 +9,16 @@ use std::io::Write;
 
 pub async fn login(context: &Context) {
     let boya = context.boya();
-    // 尝试登录, 如果是登录过期, 就继续执行, 其他错误就直接返回
+    // 尝试登录, 现在 SSO 可以自动刷新
     match boya.login().await {
         Ok(()) => {
             println!("[Info]::<Boya>: Login successfully");
             return;
         }
-        Err(Error::LoginExpired(_)) => println!("[Info]::<Boya>: Try refresh SSO token"),
         Err(e) => {
             eprintln!("[Error]::<Boya>: Login failed: {}", e);
             return;
         }
-    }
-    // 如果是登录过期就继续执行到这里, 尝试登录 SSO, 失败了就直接返回
-    match context.login().await {
-        Ok(_) => println!("[Info]::<Boya>: SSO refresh successfully"),
-        Err(e) => {
-            eprintln!("[Error]::<Boya>: SSO Login failed: {}", e);
-            return;
-        }
-    }
-    // SSO 登录成功, 尝试登录 Boya, 失败了就直接返回
-    match boya.login().await {
-        Ok(()) => println!("[Info]::<Boya>: Login successfully"),
-        Err(e) => eprintln!("[Error]::<Boya>: Login failed: {}", e),
     }
 }
 
@@ -41,20 +27,8 @@ pub async fn query(context: &Context, all: bool) {
     let courses = match boya.query_course().await {
         Ok(courses) => courses,
         Err(e) => {
-            if let Error::LoginExpired(_) = e {
-                println!("[Info]::<Boya>: Try refresh Boya token");
-                login(context).await;
-                match boya.query_course().await {
-                    Ok(c) => c,
-                    Err(e) => {
-                        eprintln!("[Error]::<Boya>: Query failed: {}", e);
-                        return;
-                    }
-                }
-            } else {
-                eprintln!("[Error]::<Boya>: Query failed: {}", e);
-                return;
-            }
+            eprintln!("[Error]::<Boya>: Query failed: {}", e);
+            return;
         }
     };
     // 默认显示过滤过的可选课程
@@ -182,20 +156,6 @@ pub async fn status(context: &Context, selected: bool) {
                 print_selected(&s);
                 return;
             }
-            Err(Error::LoginExpired(_)) => {
-                println!("[Info]::<Boya>: Try refresh Boya token");
-            }
-            Err(e) => {
-                eprintln!("[Error]::<Boya>: Query failed: {}", e);
-                return;
-            }
-        }
-        login(context).await;
-        match boya.query_selected(start, end).await {
-            Ok(s) => {
-                println!("[Info]::<Boya>: Selected courses:");
-                print_selected(&s);
-            }
             Err(e) => {
                 eprintln!("[Error]::<Boya>: Query failed: {}", e);
                 return;
@@ -207,20 +167,6 @@ pub async fn status(context: &Context, selected: bool) {
                 println!("[Info]::<Boya>: Statistic information:");
                 print_statistic(&s);
                 return;
-            }
-            Err(Error::LoginExpired(_)) => {
-                println!("[Info]::<Boya>: Try refresh Boya token");
-            }
-            Err(e) => {
-                eprintln!("[Error]::<Boya>: Query failed: {}", e);
-                return;
-            }
-        }
-        login(context).await;
-        match boya.query_statistic().await {
-            Ok(s) => {
-                println!("[Info]::<Boya>: Statistic information:");
-                print_statistic(&s);
             }
             Err(e) => {
                 eprintln!("[Error]::<Boya>: Query failed: {}", e);

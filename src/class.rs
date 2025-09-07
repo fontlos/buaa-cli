@@ -1,5 +1,5 @@
 use buaa_api::api::class::ClassCourse;
-use buaa_api::{Context, Error};
+use buaa_api::Context;
 use time::{PrimitiveDateTime, Time};
 use tokio::time::Duration;
 
@@ -12,23 +12,7 @@ pub async fn login(context: &Context) {
             println!("[Info]::<Smart Classroom>: Login successfully");
         }
         Err(e) => {
-            if let Error::LoginExpired(_) = e {
-                println!("[Info]::<Smart Classroom>: Try refresh SSO token");
-                match context.login().await {
-                    Ok(_) => {
-                        println!("[Info]::<Smart Classroom>: SSO refresh successfully");
-                        match class.login().await {
-                            Ok(()) => {
-                                println!("[Info]::<Smart Classroom>: Login successfully");
-                            }
-                            Err(e) => eprintln!("[Error]::<Smart Classroom>: Login failed: {}", e),
-                        }
-                    }
-                    Err(e) => eprintln!("[Error]::<Smart Classroom>: SSO Login failed: {}", e),
-                }
-            } else {
-                eprintln!("[Error]::<Smart Classroom>: Login failed: {}", e);
-            }
+            eprintln!("[Error]::<Smart Classroom>: Login failed: {}", e);
         }
     }
 }
@@ -37,13 +21,7 @@ pub async fn auto(context: &Context) {
     let spoc = context.spoc();
     let class = context.class();
     // 从 Spoc 获取今日课表
-    match spoc.login().await {
-        Ok(()) => (),
-        Err(e) => {
-            eprintln!("[Error]: Spoc Login failed: {}", e);
-            return;
-        }
-    };
+    // 尽可能多的使用自动刷新机制
     let week = match spoc.get_week().await {
         Ok(w) => w,
         Err(e) => {
@@ -67,13 +45,6 @@ pub async fn auto(context: &Context) {
         .collect::<Vec<_>>();
 
     // 获取学期课表
-    match class.login().await {
-        Ok(()) => (),
-        Err(e) => {
-            eprintln!("[Error]::<Smart Classroom>: Login failed: {}", e);
-            return;
-        }
-    };
     // 2024-20251 -> 202420251
     let term = week.term.replace("-", "");
     let term_schedule = match class.query_course(&term).await {

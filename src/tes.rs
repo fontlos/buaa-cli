@@ -1,5 +1,5 @@
 use buaa_api::api::tes::{EvaluationAnswer, EvaluationListItem};
-use buaa_api::{Context, Error};
+use buaa_api::Context;
 
 use std::io::Write;
 
@@ -11,24 +11,10 @@ pub async fn login(context: &Context) {
             println!("[Info]::<TES>: Login successfully");
             return;
         }
-        Err(Error::LoginExpired(_)) => println!("[Info]::<TES>: Try refresh SSO token"),
         Err(e) => {
             eprintln!("[Error]::<TES>: Login failed: {}", e);
             return;
         }
-    }
-    // 如果是登录过期就继续执行到这里, 尝试登录 SSO, 失败了就直接返回
-    match context.login().await {
-        Ok(_) => println!("[Info]::<TES>: SSO refresh successfully"),
-        Err(e) => {
-            eprintln!("[Error]::<TES>: SSO Login failed: {}", e);
-            return;
-        }
-    }
-    // SSO 登录成功, 尝试登录 Boya, 失败了就直接返回
-    match tes.login().await {
-        Ok(()) => println!("[Info]::<Boya>: Login successfully"),
-        Err(e) => eprintln!("[Error]::<Boya>: Login failed: {}", e),
     }
 }
 
