@@ -1,21 +1,9 @@
-use buaa_api::api::class::ClassCourse;
 use buaa_api::Context;
+use buaa_api::api::class::ClassCourse;
 use time::{PrimitiveDateTime, Time};
 use tokio::time::Duration;
 
 use std::fs::OpenOptions;
-
-pub async fn login(context: &Context) {
-    let class = context.class();
-    match class.login().await {
-        Ok(()) => {
-            println!("[Info]::<Smart Classroom>: Login successfully");
-        }
-        Err(e) => {
-            eprintln!("[Error]::<Smart Classroom>: Login failed: {}", e);
-        }
-    }
-}
 
 pub async fn auto(context: &Context) {
     let spoc = context.spoc();
@@ -76,7 +64,7 @@ pub async fn auto(context: &Context) {
 
 pub async fn query(context: &Context, id: Option<String>) {
     let class = context.class();
-    let path = crate::util::get_path("buaa-data-schedule.json").unwrap();
+    let path = crate::util::get_path("class-schedule.json").unwrap();
     match id {
         Some(id) => {
             match id.len() {
@@ -134,7 +122,9 @@ pub async fn query(context: &Context, id: Option<String>) {
         }
         None => {
             if !path.exists() {
-                println!("[Error]::<Smart Classroom>: No local data. Use `buaa class query <term>` first");
+                println!(
+                    "[Error]::<Smart Classroom>: No local data. Use `buaa class query <term>` first"
+                );
                 return;
             }
             let file = OpenOptions::new().read(true).open(path).unwrap();
@@ -203,14 +193,14 @@ async fn checkin_delay(context: &Context, id: &str, second: i64) {
         println!("[Info]::<Smart Classroom>: Waiting for {} seconds", second);
         tokio::time::sleep(Duration::from_secs((second + 5) as u64)).await;
     }
-    let schedule = match class.query_schedule(id).await {
-        Ok(schedule) => schedule,
+    let schedules = match class.query_schedule(id).await {
+        Ok(s) => s,
         Err(e) => {
             eprintln!("[Error]::<Smart Classroom>: Query schedule failed: {:?}", e);
             return;
         }
     };
-    let schedule = schedule.last().unwrap();
+    let schedule = schedules.last().unwrap();
     match class.checkin(&schedule.id).await {
         Ok(_) => {
             println!("[Info]::<Smart Classroom>: Checkin successfully");

@@ -33,7 +33,7 @@ Now throw it in the trash and try this tool
 
 # Install
 
-1. Download from [release](https://github.com/fontlos/buaa-cli/release) (I'm going to pause providing the latest binaries for a while, so you need to compile by yourself)
+1. Download from [release](https://github.com/fontlos/buaa-cli/release)
 2. Install from source:
    ```sh
    git clone https://github.com/fontlos/buaa-cli
@@ -55,28 +55,24 @@ For the first time to login:
 buaa login -u <username> -p <password>
 ```
 
-When your login expires, you can log back in directly in this
-
-```sh
-buaa login
-```
-
 You can also use the previous command to change your username and password
 
 ## Boya Course
 
 ```sh
-# refresh Boya Token
-buaa boya login
 # Query the available courses
 # You will then be asked to enter an ID to automatically select the course
 buaa boya query
+
 # Select a course directly by ID
 buaa boya select <ID>
+
 # Drop a course directly by ID
 buaa boya drop  <ID>
+
 # Query statistics information
 buaa boya status
+
 # Query selected courses
 buaa boya status --selected
 ```
@@ -84,9 +80,6 @@ buaa boya status --selected
 ## Smart Classroom
 
 ```sh
-# refresh Token
-buaa class login
-
 # Automatically check in for today's lessons
 buaa class auto
 
@@ -112,7 +105,7 @@ buaa class checkin <schedule ID>
 # These two IDs are distinguished by the length of the ID, course ID is usually 5 digits and schedule ID is usually 7 digits
 ```
 
-## Teacher Evaluation System
+## Teacher Evaluation System (Repairing)
 
 ```sh
 # List the forms that need to be filled out and use the index to fill out the specified form

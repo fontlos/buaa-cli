@@ -1,5 +1,18 @@
 # BUAA Cli: Powerful tool to Make BUAA Great Again
 
+## [v0.1.4] - 2025-9-7
+
+- Feat
+  - Now we needn't `login` except `sso` and `wifi`
+- Remove
+  - Remove `tes` temporarily because a lot of bugs
+- Fix `class` command
+
+## [v0.1.3] - 2025-6-13
+
+- Feat
+  - Now we sub-api will auto call `sso.login`
+
 ## [v0.1.2] - 2025-1-15
 
 - Feat

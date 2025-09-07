@@ -1,26 +1,11 @@
+use buaa_api::Context;
 use buaa_api::api::boya::{
     BoyaCampus, BoyaCapacity, BoyaCourse, BoyaKind, BoyaSelected, BoyaStatistic, BoyaTime,
 };
-use buaa_api::Context;
 use time::Date;
 use tokio::time::Duration;
 
 use std::io::Write;
-
-pub async fn login(context: &Context) {
-    let boya = context.boya();
-    // 尝试登录, 现在 SSO 可以自动刷新
-    match boya.login().await {
-        Ok(()) => {
-            println!("[Info]::<Boya>: Login successfully");
-            return;
-        }
-        Err(e) => {
-            eprintln!("[Error]::<Boya>: Login failed: {}", e);
-            return;
-        }
-    }
-}
 
 pub async fn query(context: &Context, all: bool) {
     let boya = context.boya();
@@ -57,7 +42,13 @@ pub async fn query(context: &Context, all: bool) {
         }
     };
 
-    let course = courses.iter().find(|course| course.id == id).unwrap();
+    let course = match courses.iter().find(|course| course.id == id) {
+        Some(course) => course,
+        None => {
+            eprintln!("[Error]::<Boya>: Course not found");
+            return;
+        }
+    };
     let now = buaa_api::utils::get_datatime();
     let duration = course.time.select_start - now;
     let second = duration.whole_seconds();
@@ -66,7 +57,7 @@ pub async fn query(context: &Context, all: bool) {
         let duration = Duration::from_secs((second - 10) as u64);
         println!("[Info]::<Boya>: Waiting for {} seconds", second);
         tokio::time::sleep(duration).await;
-        // 可能 token 已经过期重新获取一下
+        // 提前手动刷新 token
         match boya.login().await {
             Ok(()) => {
                 println!("[Info]::<Boya>: Refresh token successfully");

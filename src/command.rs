@@ -20,8 +20,8 @@ pub enum Commands {
     Boya(Boya),
     #[command(about = "Smart Classroom")]
     Class(Class),
-    #[command(about = "Teacher Evaluation system")]
-    Tes(Tes),
+    // #[command(about = "Teacher Evaluation system")]
+    // Tes(Tes),
     #[command(about = "Wifi Login & Logout")]
     Wifi(Wifi),
 }
@@ -34,8 +34,6 @@ pub struct Boya {
 
 #[derive(Debug, Subcommand)]
 pub enum BoyaSub {
-    /// Refresh token
-    Login,
     /// Query courses and select a course by ID
     Query {
         #[arg(short, long)]
@@ -62,8 +60,6 @@ pub struct Class {
 
 #[derive(Debug, Subcommand)]
 pub enum ClassSub {
-    /// Refresh token
-    Login,
     /// Auto checkin for today
     Auto,
     /// Query term courses with Term ID or course schedule with Course ID
@@ -81,23 +77,23 @@ pub enum ClassSub {
     },
 }
 
-#[derive(Parser, Debug)]
-pub struct Tes {
-    #[clap(subcommand)]
-    pub command: TesSub,
-}
+// #[derive(Parser, Debug)]
+// pub struct Tes {
+//     #[clap(subcommand)]
+//     pub command: TesSub,
+// }
 
-#[derive(Debug, Subcommand)]
-pub enum TesSub {
-    /// Warning!!! No Tested!!!
-    Auto,
-    List {
-        #[arg(short, long)]
-        /// By default, only unfilled forms are displayed
-        all: bool,
-    },
-    Fill,
-}
+// #[derive(Debug, Subcommand)]
+// pub enum TesSub {
+//     /// Warning!!! No Tested!!!
+//     Auto,
+//     List {
+//         #[arg(short, long)]
+//         /// By default, only unfilled forms are displayed
+//         all: bool,
+//     },
+//     Fill,
+// }
 
 #[derive(Parser, Debug)]
 pub struct Wifi {

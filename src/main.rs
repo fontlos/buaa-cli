@@ -1,21 +1,19 @@
 mod boya;
 mod class;
 mod command;
-mod tes;
-mod sso;
+// mod tes;
 mod util;
 mod wifi;
 
 use buaa_api::Context;
 use clap::Parser;
 
-use command::{
-    Boya, BoyaSub, Class, ClassSub, Cli, Commands, Tes, TesSub, Wifi, WifiSub,
-};
+use command::{Boya, BoyaSub, Class, ClassSub, Cli, Commands, Wifi, WifiSub};
 
 #[tokio::main]
 async fn main() {
-    let context = Context::with_auth("./");
+    let path = util::get_path("./").unwrap();
+    let context = Context::with_auth(&path);
 
     let cli = Cli::parse();
 
@@ -27,12 +25,12 @@ async fn main() {
             if let Some(pw) = password {
                 context.set_password(&pw);
             }
-            sso::login(&context).await;
+            match context.sso().login().await {
+                Ok(_) => println!("[Info]::<SSO>: Login successfully"),
+                Err(e) => eprintln!("[Info]::<SSO>: Login failed: {}", e),
+            };
         }
         Commands::Boya(Boya { command }) => match command {
-            BoyaSub::Login => {
-                boya::login(&context).await;
-            }
             BoyaSub::Query { all } => {
                 boya::query(&context, all).await;
             }
@@ -47,9 +45,6 @@ async fn main() {
             }
         },
         Commands::Class(Class { command }) => match command {
-            ClassSub::Login => {
-                class::login(&context).await;
-            }
             ClassSub::Auto => {
                 class::auto(&context).await;
             }
@@ -60,17 +55,17 @@ async fn main() {
                 class::checkin(&context, id, time).await;
             }
         },
-        Commands::Tes(Tes { command }) => match command {
-            TesSub::Auto => {
-                tes::auto(&context).await;
-            }
-            TesSub::List { all } => {
-                tes::list(&context, all).await;
-            }
-            TesSub::Fill => {
-                tes::fill(&context).await;
-            }
-        },
+        // Commands::Tes(Tes { command }) => match command {
+        //     TesSub::Auto => {
+        //         tes::auto(&context).await;
+        //     }
+        //     TesSub::List { all } => {
+        //         tes::list(&context, all).await;
+        //     }
+        //     TesSub::Fill => {
+        //         tes::fill(&context).await;
+        //     }
+        // },
         Commands::Wifi(Wifi { command }) => match command {
             WifiSub::Login => {
                 wifi::login(&context).await;
@@ -80,5 +75,5 @@ async fn main() {
             }
         },
     }
-    context.save_auth("./");
+    context.save_auth(&path);
 }
