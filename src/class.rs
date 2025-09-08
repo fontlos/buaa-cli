@@ -74,9 +74,6 @@ pub async fn query(context: &Context, id: Option<String>) {
                         Ok(schedule) => schedule,
                         Err(e) => {
                             eprintln!("[Error]::<Smart Classroom>: Query schedule failed: {}", e);
-                            println!(
-                                "[Info]::<Smart Classroom>: Consider use `buaa class login` first"
-                            );
                             return;
                         }
                     };
@@ -93,9 +90,6 @@ pub async fn query(context: &Context, id: Option<String>) {
                         Ok(courses) => courses,
                         Err(e) => {
                             eprintln!("[Error]::<Smart Classroom>: Query course failed: {}", e);
-                            println!(
-                                "[Info]::<Smart Classroom>: Consider use `buaa class login` first"
-                            );
                             return;
                         }
                     };

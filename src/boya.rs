@@ -116,7 +116,6 @@ pub async fn drop(context: &Context, id: u32) {
         }
         Err(e) => {
             eprintln!("[Error]::<Boya>: Drop failed: {}", e);
-            eprintln!("[Info]::<Boya>: Consider login again");
         }
     }
 }
