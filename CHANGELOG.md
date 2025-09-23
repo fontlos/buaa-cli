@@ -6,7 +6,10 @@
   - Now we needn't `login` except `sso` and `wifi`
 - Remove
   - Remove `tes` temporarily because a lot of bugs
-- Fix `class` command
+- Fix
+  - `class` login (cause by server update)
+  - `spoc::Schedule` parse failed (cause by server update)
+  - More accurate course matching for `class auto` (cause by server update)
 
 ## [v0.1.3] - 2025-6-13
 

@@ -1,6 +1,6 @@
 use buaa_api::Context;
 use buaa_api::api::boya::{
-    BoyaCampus, BoyaCapacity, BoyaCourse, BoyaKind, BoyaSelected, BoyaStatistic, BoyaTime,
+    Campus, Capacity, Course, Category, Selected, Statistic, Schedule,
 };
 use time::Date;
 use tokio::time::Duration;
@@ -23,7 +23,7 @@ pub async fn query(context: &Context, all: bool) {
         let time = buaa_api::utils::get_datatime();
         let courses = courses.iter().filter(|course| {
             course.selected
-                || (course.capacity.current < course.capacity.max && course.time.select_end > time)
+                || (course.capacity.current < course.capacity.max && course.schedule.select_end > time)
         });
 
         print_course(courses);
@@ -50,7 +50,7 @@ pub async fn query(context: &Context, all: bool) {
         }
     };
     let now = buaa_api::utils::get_datatime();
-    let duration = course.time.select_start - now;
+    let duration = course.schedule.select_start - now;
     let second = duration.whole_seconds();
     // 如果时间大于 10 那么就等待并提前十秒重置token, 否则直接选课
     if second > 10 {
@@ -71,7 +71,7 @@ pub async fn query(context: &Context, all: bool) {
 
     // 之前少等待了10秒, 现在计算还需等待多久
     let now = buaa_api::utils::get_datatime();
-    let duration = course.time.select_start - now;
+    let duration = course.schedule.select_start - now;
     let second = duration.whole_seconds();
     if second > 0 {
         let duration = Duration::from_secs(second as u64);
@@ -166,17 +166,17 @@ pub async fn status(context: &Context, selected: bool) {
     }
 }
 
-// ======================= Print BoyaCourse =======================
+// ======================= Print Course =======================
 
 fn tabled_name(s: &str) -> String {
     textwrap::wrap(s, 18).join("\n")
 }
 
-fn tabled_position(s: &str) -> String {
+fn tabled_location(s: &str) -> String {
     textwrap::wrap(s, 15).join("\n")
 }
 
-fn tabled_time(time: &BoyaTime) -> String {
+fn tabled_schedule(time: &Schedule) -> String {
     let format_string =
         time::format_description::parse("[year].[month].[day] [hour]:[minute]").unwrap();
 
@@ -191,32 +191,32 @@ fn tabled_time(time: &BoyaTime) -> String {
     )
 }
 
-fn tabled_kind(capacity: &BoyaKind) -> String {
-    match capacity {
-        BoyaKind::Arts => "美育".to_string(),
-        BoyaKind::Ethics => "德育".to_string(),
-        BoyaKind::Labor => "劳动教育".to_string(),
-        BoyaKind::Safety => "安全健康".to_string(),
-        BoyaKind::Other => "其他".to_string(),
+fn tabled_category(category: &Category) -> String {
+    match category {
+        Category::Arts => "美育".to_string(),
+        Category::Ethics => "德育".to_string(),
+        Category::Labor => "劳动教育".to_string(),
+        Category::Safety => "安全健康".to_string(),
+        Category::Other => "其他".to_string(),
     }
 }
 
-fn tabled_capacity(capacity: &BoyaCapacity) -> String {
+fn tabled_capacity(capacity: &Capacity) -> String {
     format!("{} / {}", capacity.current, capacity.max)
 }
 
-fn tabled_campus(capacity: &BoyaCampus) -> String {
+fn tabled_campus(capacity: &Campus) -> String {
     match capacity {
-        BoyaCampus::XueYuanLu => "学院路".to_string(),
-        BoyaCampus::ShaHe => "沙河".to_string(),
-        BoyaCampus::All => "全部".to_string(),
-        BoyaCampus::Other => "其他".to_string(),
+        Campus::XueYuanLu => "学院路".to_string(),
+        Campus::ShaHe => "沙河".to_string(),
+        Campus::All => "全部".to_string(),
+        Campus::Other => "其他".to_string(),
     }
 }
 
 fn print_course<'a, I>(data: I)
 where
-    I: Iterator<Item = &'a BoyaCourse>,
+    I: Iterator<Item = &'a Course>,
 {
     let mut builder = tabled::builder::Builder::new();
     builder.push_record([
@@ -226,9 +226,9 @@ where
         builder.push_record([
             &c.id.to_string(),
             &tabled_name(&c.name),
-            &tabled_position(&c.position),
-            &tabled_time(&c.time),
-            &tabled_kind(&c.kind),
+            &tabled_location(&c.location),
+            &tabled_schedule(&c.schedule),
+            &tabled_category(&c.category),
             &tabled_capacity(&c.capacity),
             &tabled_campus(&c.campus),
             &c.selected.to_string(),
@@ -237,30 +237,30 @@ where
     crate::util::print_table(builder);
 }
 
-// ======================= Print BoyaSelected =======================
+// ======================= Print Selected =======================
 
-fn print_selected(data: &Vec<BoyaSelected>) {
+fn print_selected(data: &Vec<Selected>) {
     let mut builder = tabled::builder::Builder::new();
     builder.push_record(["ID", "Course", "Position", "Time", "Kind"]);
     for c in data {
         builder.push_record([
             &c.id.to_string(),
             &tabled_name(&c.name),
-            &tabled_position(&c.position),
-            &tabled_time(&c.time),
-            &tabled_kind(&c.kind),
+            &tabled_location(&c.location),
+            &tabled_schedule(&c.schedule),
+            &tabled_category(&c.category),
         ]);
     }
     crate::util::print_table(builder);
 }
 
-// ======================= Print BoyaStatistic =======================
+// ======================= Print Statistic =======================
 
-fn print_statistic(data: &BoyaStatistic) {
+fn print_statistic(data: &Statistic) {
     let mut builder = tabled::builder::Builder::new();
     builder.push_record(["Kind", "Require", "Select", "Complete", "Fail", "Undone"]);
     builder.push_record([
-        &tabled_kind(&BoyaKind::Ethics),
+        &tabled_category(&Category::Ethics),
         &data.ethics.require.to_string(),
         &data.ethics.select.to_string(),
         &data.ethics.complete.to_string(),
@@ -268,7 +268,7 @@ fn print_statistic(data: &BoyaStatistic) {
         &data.ethics.undone.to_string(),
     ]);
     builder.push_record([
-        &tabled_kind(&BoyaKind::Arts),
+        &tabled_category(&Category::Arts),
         &data.arts.require.to_string(),
         &data.arts.select.to_string(),
         &data.arts.complete.to_string(),
@@ -276,7 +276,7 @@ fn print_statistic(data: &BoyaStatistic) {
         &data.arts.undone.to_string(),
     ]);
     builder.push_record([
-        &tabled_kind(&BoyaKind::Labor),
+        &tabled_category(&Category::Labor),
         &data.labor.require.to_string(),
         &data.labor.select.to_string(),
         &data.labor.complete.to_string(),
@@ -284,7 +284,7 @@ fn print_statistic(data: &BoyaStatistic) {
         &data.labor.undone.to_string(),
     ]);
     builder.push_record([
-        &tabled_kind(&BoyaKind::Safety),
+        &tabled_category(&Category::Safety),
         &data.safety.require.to_string(),
         &data.safety.select.to_string(),
         &data.safety.complete.to_string(),

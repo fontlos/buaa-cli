@@ -1,5 +1,5 @@
 use buaa_api::Context;
-use buaa_api::api::class::ClassCourse;
+use buaa_api::api::class::Course;
 use time::{PrimitiveDateTime, Time};
 use tokio::time::Duration;
 
@@ -9,7 +9,6 @@ pub async fn auto(context: &Context) {
     let spoc = context.spoc();
     let class = context.class();
     // 从 Spoc 获取今日课表
-    // 尽可能多的使用自动刷新机制
     let week = match spoc.get_week().await {
         Ok(w) => w,
         Err(e) => {
@@ -48,12 +47,12 @@ pub async fn auto(context: &Context) {
     // 先循环今日课表, 在学期课表中去查询对应的课程 ID
     for ts in today_schedule {
         for s in &term_schedule {
-            if ts.name == s.name {
+            if ts.class_id == s.class_id {
                 let now = buaa_api::utils::get_datatime();
                 let target = ts.time.start;
                 let duration = target - now;
                 let second = duration.whole_seconds();
-                println!("[Info]::<Smart Classroom>: Checkin for {}", s.name);
+                println!("[Info]::<Smart Classroom>: Checkin for {} ID: {}", s.name, s.id);
                 checkin_delay(&context, &s.id, second).await;
                 break;
             }
@@ -78,9 +77,9 @@ pub async fn query(context: &Context, id: Option<String>) {
                         }
                     };
                     let mut builder = tabled::builder::Builder::new();
-                    builder.push_record(["ID", "Time", "State"]);
+                    builder.push_record(["ID", "Time", "Status"]);
                     for s in schedules {
-                        builder.push_record([&s.id, &s.time.to_string(), &s.state]);
+                        builder.push_record([&s.id, &s.time.to_string(), &s.status.to_string()]);
                     }
                     crate::util::print_table(builder);
                 }
@@ -122,7 +121,7 @@ pub async fn query(context: &Context, id: Option<String>) {
                 return;
             }
             let file = OpenOptions::new().read(true).open(path).unwrap();
-            let courses: Vec<ClassCourse> = serde_json::from_reader(file).unwrap();
+            let courses: Vec<Course> = serde_json::from_reader(file).unwrap();
 
             let mut builder = tabled::builder::Builder::new();
             builder.push_record(["ID", "Course", "Teacher"]);
