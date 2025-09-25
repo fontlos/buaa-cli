@@ -1,14 +1,14 @@
 mod boya;
 mod class;
 mod command;
-// mod tes;
+mod tes;
 mod util;
 mod wifi;
 
 use buaa_api::Context;
 use clap::Parser;
 
-use command::{Boya, BoyaSub, Class, ClassSub, Cli, Commands, Wifi, WifiSub};
+use command::{Boya, BoyaSub, Class, ClassSub, Cli, Commands, Wifi, WifiSub, Tes, TesSub};
 
 #[tokio::main]
 async fn main() {
@@ -55,17 +55,14 @@ async fn main() {
                 class::checkin(&context, id, time).await;
             }
         },
-        // Commands::Tes(Tes { command }) => match command {
-        //     TesSub::Auto => {
-        //         tes::auto(&context).await;
-        //     }
-        //     TesSub::List { all } => {
-        //         tes::list(&context, all).await;
-        //     }
-        //     TesSub::Fill => {
-        //         tes::fill(&context).await;
-        //     }
-        // },
+        Commands::Tes(Tes { command }) => match command {
+            TesSub::Auto => {
+                tes::auto(&context).await;
+            }
+            TesSub::List { all } => {
+                tes::list(&context, all).await;
+            }
+        },
         Commands::Wifi(Wifi { command }) => match command {
             WifiSub::Login => {
                 wifi::login(&context).await;

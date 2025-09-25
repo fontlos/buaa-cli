@@ -1,15 +1,14 @@
 # BUAA Cli: Powerful tool to Make BUAA Great Again
 
-## [v0.1.4] - 2025-9-7
+## [v0.1.4] - 2025-9-25
 
 - Feat
   - Now we needn't `login` except `sso` and `wifi`
-- Remove
-  - Remove `tes` temporarily because a lot of bugs
 - Fix
   - `class` login (cause by server update)
-  - `spoc::Schedule` parse failed (cause by server update)
   - More accurate course matching for `class auto` (cause by server update)
+  - `spoc::Schedule` parse failed (cause by server update)
+  - `tes` command
 
 ## [v0.1.3] - 2025-6-13
 

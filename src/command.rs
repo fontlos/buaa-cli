@@ -20,8 +20,8 @@ pub enum Commands {
     Boya(Boya),
     #[command(about = "Smart Classroom")]
     Class(Class),
-    // #[command(about = "Teacher Evaluation system")]
-    // Tes(Tes),
+    #[command(about = "Teacher Evaluation system")]
+    Tes(Tes),
     #[command(about = "Wifi Login & Logout")]
     Wifi(Wifi),
 }
@@ -77,23 +77,22 @@ pub enum ClassSub {
     },
 }
 
-// #[derive(Parser, Debug)]
-// pub struct Tes {
-//     #[clap(subcommand)]
-//     pub command: TesSub,
-// }
+#[derive(Parser, Debug)]
+pub struct Tes {
+    #[clap(subcommand)]
+    pub command: TesSub,
+}
 
-// #[derive(Debug, Subcommand)]
-// pub enum TesSub {
-//     /// Warning!!! No Tested!!!
-//     Auto,
-//     List {
-//         #[arg(short, long)]
-//         /// By default, only unfilled forms are displayed
-//         all: bool,
-//     },
-//     Fill,
-// }
+#[derive(Debug, Subcommand)]
+pub enum TesSub {
+    /// Warning!!! No Tested!!!
+    Auto,
+    List {
+        #[arg(short, long)]
+        /// By default, only unfilled forms are displayed
+        all: bool,
+    },
+}
 
 #[derive(Parser, Debug)]
 pub struct Wifi {
