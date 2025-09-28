@@ -5,6 +5,8 @@ use tokio::time::Duration;
 
 use std::fs::OpenOptions;
 
+use crate::utils;
+
 pub async fn auto(context: &Context) {
     let spoc = context.spoc();
     let class = context.class();
@@ -23,7 +25,7 @@ pub async fn auto(context: &Context) {
             return;
         }
     };
-    let now = buaa_api::utils::get_datetime();
+    let now = utils::get_datetime();
     let weekday = now.weekday();
     // 过滤掉已经开始的课程
     let today_schedule = week_schedule
@@ -48,7 +50,7 @@ pub async fn auto(context: &Context) {
     for ts in today_schedule {
         for s in &term_schedule {
             if ts.class_id == s.class_id {
-                let now = buaa_api::utils::get_datetime();
+                let now = utils::get_datetime();
                 let target = ts.time.start;
                 let duration = target - now;
                 let second = duration.whole_seconds();
@@ -63,7 +65,7 @@ pub async fn auto(context: &Context) {
 
 pub async fn query(context: &Context, id: Option<String>) {
     let class = context.class();
-    let path = crate::util::get_path("class-schedule.json").unwrap();
+    let path = crate::utils::get_path("class-schedule.json").unwrap();
     match id {
         Some(id) => {
             match id.len() {
@@ -81,7 +83,7 @@ pub async fn query(context: &Context, id: Option<String>) {
                     for s in schedules {
                         builder.push_record([&s.id, &s.time.to_string(), &s.status.to_string()]);
                     }
-                    crate::util::print_table(builder);
+                    crate::utils::print_table(builder);
                 }
                 // Term ID
                 9 => {
@@ -105,7 +107,7 @@ pub async fn query(context: &Context, id: Option<String>) {
                     for c in courses {
                         builder.push_record([&c.id, &c.name, &c.teacher]);
                     }
-                    crate::util::print_table(builder);
+                    crate::utils::print_table(builder);
                 }
                 _ => {
                     println!("[Error]::<Smart Classroom>: Invalid ID");
@@ -128,7 +130,7 @@ pub async fn query(context: &Context, id: Option<String>) {
             for c in courses {
                 builder.push_record([&c.id, &c.name, &c.teacher]);
             }
-            crate::util::print_table(builder);
+            crate::utils::print_table(builder);
         }
     };
 }
@@ -172,7 +174,7 @@ fn parse_delay_second(time: String) -> i64 {
     let hour = time[0..2].parse::<u8>().unwrap();
     let minute = time[2..4].parse::<u8>().unwrap();
     let time = Time::from_hms(hour, minute, 0).unwrap();
-    let now = buaa_api::utils::get_datetime();
+    let now = utils::get_datetime();
     let target = PrimitiveDateTime::new(now.date(), time);
     let duration = target - now;
     let second = duration.whole_seconds();

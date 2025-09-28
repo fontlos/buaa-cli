@@ -2,7 +2,7 @@ mod boya;
 mod class;
 mod command;
 mod tes;
-mod util;
+mod utils;
 mod wifi;
 
 use buaa_api::Context;
@@ -12,7 +12,7 @@ use command::{Boya, BoyaSub, Class, ClassSub, Cli, Commands, Wifi, WifiSub, Tes,
 
 #[tokio::main]
 async fn main() {
-    let path = util::get_path("./").unwrap();
+    let path = utils::get_path("./").unwrap();
     let context = Context::with_auth(&path);
 
     let cli = Cli::parse();

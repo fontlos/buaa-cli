@@ -41,7 +41,7 @@ pub async fn list(context: &Context, all: bool) {
     for l in &list {
         builder.push_record([&l.course, &l.teacher, &l.state.to_string()]);
     }
-    crate::util::print_table(builder);
+    crate::utils::print_table(builder);
 
     print!("[Info]::<TES>: Type index to fill: ");
     std::io::stdout().flush().unwrap();
@@ -96,7 +96,7 @@ async fn submit(context: &Context, item: &EvaluationListItem) {
                 &q.options[2].score.to_string(),
                 &q.options[3].score.to_string(),
             ]);
-            crate::util::print_table(builder);
+            crate::utils::print_table(builder);
         }
         print!("[Info]::<TES>: Type answer: ");
         std::io::stdout().flush().unwrap();

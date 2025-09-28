@@ -2,10 +2,11 @@ use buaa_api::Context;
 use buaa_api::api::boya::{
     Campus, Capacity, Course, Category, Selected, Statistic, Schedule,
 };
-use time::Date;
 use tokio::time::Duration;
 
 use std::io::Write;
+
+use crate::utils;
 
 pub async fn query(context: &Context, all: bool) {
     let boya = context.boya();
@@ -20,7 +21,7 @@ pub async fn query(context: &Context, all: bool) {
     if all {
         print_course(courses.iter());
     } else {
-        let time = buaa_api::utils::get_datetime();
+        let time = utils::get_datetime();
         let courses = courses.iter().filter(|course| {
             course.selected
                 || (course.capacity.current < course.capacity.max && course.schedule.select_end > time)
@@ -49,7 +50,7 @@ pub async fn query(context: &Context, all: bool) {
             return;
         }
     };
-    let now = buaa_api::utils::get_datetime();
+    let now = utils::get_datetime();
     let duration = course.schedule.select_start - now;
     let second = duration.whole_seconds();
     // 如果时间大于 10 那么就等待并提前十秒重置token, 否则直接选课
@@ -70,7 +71,7 @@ pub async fn query(context: &Context, all: bool) {
     }
 
     // 之前少等待了10秒, 现在计算还需等待多久
-    let now = buaa_api::utils::get_datetime();
+    let now = utils::get_datetime();
     let duration = course.schedule.select_start - now;
     let second = duration.whole_seconds();
     if second > 0 {
@@ -121,26 +122,10 @@ pub async fn drop(context: &Context, id: u32) {
 }
 
 pub async fn status(context: &Context, selected: bool) {
-    let now = buaa_api::utils::get_datetime();
-    let middle = Date::from_calendar_date(now.year(), time::Month::July, 1).unwrap();
-    let now_date = Date::from_calendar_date(now.year(), now.month(), now.day()).unwrap();
-    let (start, end) = if now_date < middle {
-        // 上半年
-        (
-            Date::from_calendar_date(now.year(), time::Month::February, 1).unwrap(),
-            Date::from_calendar_date(now.year(), time::Month::July, 1).unwrap(),
-        )
-    } else {
-        // 下半年
-        (
-            Date::from_calendar_date(now.year(), time::Month::August, 1).unwrap(),
-            Date::from_calendar_date(now.year() + 1, time::Month::January, 1).unwrap(),
-        )
-    };
     let boya = context.boya();
     if selected {
         // 完全成功或失败就直接返回, 否则尝试刷新登陆状态
-        match boya.query_selected(start, end).await {
+        match boya.query_selected(None).await {
             Ok(s) => {
                 println!("[Info]::<Boya>: Selected courses:");
                 print_selected(&s);
@@ -234,7 +219,7 @@ where
             &c.selected.to_string(),
         ]);
     }
-    crate::util::print_table(builder);
+    crate::utils::print_table(builder);
 }
 
 // ======================= Print Selected =======================
@@ -251,7 +236,7 @@ fn print_selected(data: &Vec<Selected>) {
             &tabled_category(&c.category),
         ]);
     }
-    crate::util::print_table(builder);
+    crate::utils::print_table(builder);
 }
 
 // ======================= Print Statistic =======================
@@ -291,5 +276,5 @@ fn print_statistic(data: &Statistic) {
         &data.safety.fail.to_string(),
         &data.safety.undone.to_string(),
     ]);
-    crate::util::print_table(builder);
+    crate::utils::print_table(builder);
 }
