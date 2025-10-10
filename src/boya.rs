@@ -195,7 +195,6 @@ fn tabled_campus(capacity: &Campus) -> String {
         Campus::XueYuanLu => "学院路".to_string(),
         Campus::ShaHe => "沙河".to_string(),
         Campus::All => "全部".to_string(),
-        Campus::Other => "其他".to_string(),
     }
 }
 
