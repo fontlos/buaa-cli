@@ -121,6 +121,35 @@ pub async fn drop(context: &Context, id: u32) {
     }
 }
 
+pub async fn checkin(context: &Context, id: u32) {
+    let boya = context.boya();
+    let rule = match boya.query_sign_rule(id).await {
+        Ok(rule) => match rule {
+            Some(rule) => rule,
+            None => {
+                println!("[Info]::<Boya>: This course does not support check-in");
+                return;
+            }
+        },
+        Err(e) => {
+            eprintln!("[Error]::<Boya>: Query sign rule failed: {}", e);
+            return;
+        }
+    };
+    if rule.checkin_start > utils::get_datetime() {
+        println!("[Info]::<Boya>: Check-in has not started yet");
+        return;
+    }
+    match boya.checkin_course(id, &rule.coordinate).await {
+        Ok(_) => {
+            println!("[Info]::<Boya>: Check-in successfully");
+        }
+        Err(e) => {
+            eprintln!("[Error]::<Boya>: Check-in failed: {}", e);
+        }
+    }
+}
+
 pub async fn status(context: &Context, selected: bool) {
     let boya = context.boya();
     if selected {

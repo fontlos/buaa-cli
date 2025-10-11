@@ -40,6 +40,9 @@ async fn main() {
             BoyaSub::Drop { id } => {
                 boya::drop(&context, id).await;
             }
+            BoyaSub::Checkin { id } => {
+                boya::checkin(&context, id).await;
+            }
             BoyaSub::Status { selected } => {
                 boya::status(&context, selected).await;
             }
