@@ -121,13 +121,13 @@ pub async fn drop(context: &Context, id: u32) {
     }
 }
 
-pub async fn checkin(context: &Context, id: u32) {
+pub async fn check(context: &Context, id: u32) {
     let boya = context.boya();
     let rule = match boya.query_sign_rule(id).await {
         Ok(rule) => match rule {
             Some(rule) => rule,
             None => {
-                println!("[Info]::<Boya>: This course does not support check-in");
+                println!("[Info]::<Boya>: This course does not support check-in/out");
                 return;
             }
         },
@@ -140,14 +140,33 @@ pub async fn checkin(context: &Context, id: u32) {
         println!("[Info]::<Boya>: Check-in has not started yet");
         return;
     }
-    match boya.checkin_course(id, &rule.coordinate).await {
-        Ok(_) => {
-            println!("[Info]::<Boya>: Check-in successfully");
+    if rule.checkin_end > utils::get_datetime() {
+        match boya.checkin_course(id, &rule.coordinate).await {
+            Ok(_) => {
+                println!("[Info]::<Boya>: Check-in successfully");
+            }
+            Err(e) => {
+                eprintln!("[Error]::<Boya>: Check-in failed: {}", e);
+            }
         }
-        Err(e) => {
-            eprintln!("[Error]::<Boya>: Check-in failed: {}", e);
-        }
+        return;
     }
+    if rule.checkout_start > utils::get_datetime() {
+        println!("[Info]::<Boya>: Check-out has not started yet");
+        return;
+    }
+    if rule.checkout_end > utils::get_datetime() {
+        match boya.checkout_course(id, &rule.coordinate).await {
+            Ok(_) => {
+                println!("[Info]::<Boya>: Check-out successfully");
+            }
+            Err(e) => {
+                eprintln!("[Error]::<Boya>: Check-out failed: {}", e);
+            }
+        }
+        return;
+    }
+    println!("[Info]::<Boya>: Check-in/out time has passed");
 }
 
 pub async fn status(context: &Context, selected: bool) {
