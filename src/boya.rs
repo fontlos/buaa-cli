@@ -1,6 +1,6 @@
 use buaa_api::Context;
 use buaa_api::api::boya::{
-    Campus, Capacity, Course, Category, Selected, Statistic, Schedule,
+    Campus, Capacity, Category, Course, Schedule, Selected, SignRule, Statistic,
 };
 use tokio::time::Duration;
 
@@ -24,7 +24,8 @@ pub async fn query(context: &Context, all: bool) {
         let time = utils::get_datetime();
         let courses = courses.iter().filter(|course| {
             course.selected
-                || (course.capacity.current < course.capacity.max && course.schedule.select_end > time)
+                || (course.capacity.current < course.capacity.max
+                    && course.schedule.select_end > time)
         });
 
         print_course(courses);
@@ -117,6 +118,23 @@ pub async fn drop(context: &Context, id: u32) {
         }
         Err(e) => {
             eprintln!("[Error]::<Boya>: Drop failed: {}", e);
+        }
+    }
+}
+
+pub async fn rule(context: &Context, id: u32) {
+    let boya = context.boya();
+    match boya.query_sign_rule(id).await {
+        Ok(rule) => match rule {
+            Some(rule) => {
+                print_sign_rule(&rule);
+            }
+            None => {
+                println!("[Info]::<Boya>: This course does not support check-in/out");
+            }
+        },
+        Err(e) => {
+            eprintln!("[Error]::<Boya>: Query sign rule failed: {}", e);
         }
     }
 }
@@ -283,6 +301,26 @@ fn print_selected(data: &Vec<Selected>) {
             &tabled_category(&c.category),
         ]);
     }
+    crate::utils::print_table(builder);
+}
+
+// ======================= Print Sign Rule =======================
+
+fn print_sign_rule(data: &SignRule) {
+    let mut builder = tabled::builder::Builder::new();
+    builder.push_record([
+        "Check-in Start",
+        "Check-in End",
+        "Check-out Start",
+        "Check-out End",
+        "Coordinate",
+    ]);
+    builder.push_record([
+        &data.checkin_start.to_string(),
+        &data.checkin_end.to_string(),
+        &data.checkout_start.to_string(),
+        &data.checkout_end.to_string(),
+    ]);
     crate::utils::print_table(builder);
 }
 
