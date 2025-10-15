@@ -66,18 +66,17 @@ pub struct Class {
 pub enum ClassSub {
     /// Auto checkin for today
     Auto,
-    /// Query term courses with Term ID or course schedule with Course ID
+    /// Query schedules by Date, term courses by Term ID, or course schedules by Course ID
     Query {
-        /// Term ID or Course ID
+        /// Date (format: YYYYMMDD),
+        /// Term ID (e.g. `202320242` is 2024 spring term, `202420251` is 2024 autumn term)
+        /// or Course ID (from query term courses)
         id: Option<String>,
     },
-    /// Checkin with Course ID, or Schedule ID
+    /// Checkin with Schedule ID
     Checkin {
-        /// Course ID, or Schedule ID
+        /// Schedule ID
         id: String,
-        #[arg(short, long)]
-        /// Delay time. eg. '0800' means 8:00 am.
-        time: Option<String>,
     },
 }
 

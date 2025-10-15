@@ -8,7 +8,7 @@ mod wifi;
 use buaa_api::Context;
 use clap::Parser;
 
-use command::{Boya, BoyaSub, Class, ClassSub, Cli, Commands, Wifi, WifiSub, Tes, TesSub};
+use command::{Boya, BoyaSub, Class, ClassSub, Cli, Commands, Tes, TesSub, Wifi, WifiSub};
 
 #[tokio::main]
 async fn main() {
@@ -57,8 +57,8 @@ async fn main() {
             ClassSub::Query { id } => {
                 class::query(&context, id).await;
             }
-            ClassSub::Checkin { id, time } => {
-                class::checkin(&context, id, time).await;
+            ClassSub::Checkin { id } => {
+                class::checkin(&context, &id).await;
             }
         },
         Commands::Tes(Tes { command }) => match command {

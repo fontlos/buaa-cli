@@ -1,5 +1,5 @@
-use buaa_api::api::tes::{EvaluationAnswer, EvaluationListItem};
 use buaa_api::Context;
+use buaa_api::api::tes::{EvaluationAnswer, EvaluationListItem};
 
 use std::io::Write;
 
@@ -67,9 +67,7 @@ pub async fn list(context: &Context, all: bool) {
 
 async fn submit(context: &Context, item: &EvaluationListItem) {
     login(context).await;
-    println!(
-        "[Info]::<TES>: ======================= Manual fill start ======================="
-    );
+    println!("[Info]::<TES>: ======================= Manual fill start =======================");
     let tes = context.tes();
 
     println!(
@@ -132,24 +130,25 @@ async fn submit(context: &Context, item: &EvaluationListItem) {
         Err(e) => eprintln!("[Error]::<TES>: Submit failed: {}", e),
     }
 
-    println!(
-        "[Info]::<TES>: ======================== Manual fill end ========================"
-    );
+    println!("[Info]::<TES>: ======================== Manual fill end ========================");
 }
 
 pub async fn auto(context: &Context) {
-    print!("Warning!!! This function maybe not work as expected, and it will be fixed untill the next term. Press Enter to continue");
+    print!(
+        "Warning!!! This function maybe not work as expected, and it will be fixed untill the next term. Press Enter to continue"
+    );
     std::io::stdout().flush().unwrap();
     let _ = std::io::stdin().read_line(&mut String::new()).unwrap();
 
     login(context).await;
-    println!(
-        "[Info]::<TES>: ======================= Auto fill start ======================="
-    );
+    println!("[Info]::<TES>: ======================= Auto fill start =======================");
     let tes = context.tes();
 
     let list = match tes.get_evaluation_list().await {
-        Ok(list) => list.into_iter().filter(|item| !item.state).collect::<Vec<EvaluationListItem>>(),
+        Ok(list) => list
+            .into_iter()
+            .filter(|item| !item.state)
+            .collect::<Vec<EvaluationListItem>>(),
         Err(e) => {
             eprintln!("[Error]::<TES>: Get list failed: {}", e);
             return;
@@ -177,7 +176,5 @@ pub async fn auto(context: &Context) {
         println!("[Info]::<TES>: Wait 1 second to avoid too fast");
         std::thread::sleep(std::time::Duration::from_secs(1));
     }
-    println!(
-        "[Info]::<TES>: ======================== Auto fill end ========================"
-    );
+    println!("[Info]::<TES>: ======================== Auto fill end ========================");
 }

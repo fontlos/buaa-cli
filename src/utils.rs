@@ -5,9 +5,31 @@ use tabled::{
 
 use time::{OffsetDateTime, PrimitiveDateTime, UtcOffset};
 
+use std::collections::hash_map::RandomState;
 use std::env;
 use std::error::Error;
+use std::hash::{BuildHasher, Hasher};
 use std::path::PathBuf;
+use std::time::{SystemTime, UNIX_EPOCH};
+
+pub fn simple_once_rand() -> u64 {
+    let state = RandomState::new();
+    let mut hasher = state.build_hasher();
+    // 结合时间和内存随机性
+    let now = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .unwrap()
+        .as_nanos();
+    hasher.write_u128(now);
+    hasher.write_usize(&now as *const _ as usize);
+    hasher.finish()
+}
+
+pub fn simple_rand_range(min: u64, max: u64) -> u64 {
+    let range = max - min + 1;
+    let product = (simple_once_rand() as u128) * (range as u128);
+    min + (product >> 64) as u64
+}
 
 pub fn get_datetime() -> PrimitiveDateTime {
     let now_utc = OffsetDateTime::now_utc();

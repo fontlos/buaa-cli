@@ -70,6 +70,12 @@ buaa boya select <ID>
 # Drop a course directly by ID
 buaa boya drop  <ID>
 
+# Query course's sign rule to check whether it can check-in/out by self
+buaa boya rule <ID>
+
+# If command above print rule, this means you can use this to check-in/out by self
+buaa boya check <ID>
+
 # Query statistics information
 buaa boya status
 
@@ -83,6 +89,8 @@ buaa boya status --selected
 # Automatically check in for today's lessons
 buaa class auto
 
+# Query one day's schedule, format: YYYYMMDD
+buaa class query <date>
 # Query the courses for this term and save to local file by term ID
 # You can also use this command to update the local file
 # This will output a table with the course ID
@@ -95,14 +103,9 @@ buaa class query
 buaa class query <course ID>
 # These two IDs are distinguished by the length of the ID, term ID is usually 9 digits and course ID is usually 5 digits
 
-# Check in directly by course ID
-# However, since it is not possible to directly deduce the time of the lesson, the time parameter must be added
-# eg. '0800' means 8:00 am
-buaa class checkin <course ID> -t <time>
 # Check in directly by schedule ID
 # It is even possible to check in for the previous schedule
 buaa class checkin <schedule ID>
-# These two IDs are distinguished by the length of the ID, course ID is usually 5 digits and schedule ID is usually 7 digits
 ```
 
 ## Teacher Evaluation System (Repairing)
