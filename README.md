@@ -91,20 +91,16 @@ buaa class auto
 
 # Query one day's schedule, format: YYYYMMDD
 buaa class query <date>
-# Query the courses for this term and save to local file by term ID
-# You can also use this command to update the local file
-# This will output a table with the course ID
+
+# Query the courses for this term
 # eg. '202420251' means the first term of 2024-2025
 buaa class query <term ID>
-# If don't add parameters, then read the list of courses from local file
-buaa class query
-# You can get all the schedules of the course through the course ID
-# This will output a table with the schedule ID
+
+# Query schedules of one course. ID len is 5
 buaa class query <course ID>
-# These two IDs are distinguished by the length of the ID, term ID is usually 9 digits and course ID is usually 5 digits
 
 # Check in directly by schedule ID
-# It is even possible to check in for the previous schedule
+# It is even possible to check in for the past or future schedule
 buaa class checkin <schedule ID>
 ```
 
@@ -124,10 +120,11 @@ buaa tes auto
 
 ## WiFi
 
-You can use the following simple command to connect to **BUAA-WiFi**
+You can use the following simple command to (dis)connect to **BUAA-WiFi**
 
 ```sh
 buaa wifi login
+buaa wifi logout
 ```
 
 On the Windows platform, you can use a `.bat` file and add it to the `C:\Users\<Username>\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup` folder, so that you can automatically connect to WiFi at boot

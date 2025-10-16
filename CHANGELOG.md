@@ -1,5 +1,18 @@
 # BUAA Cli: Powerful tool to Make BUAA Great Again
 
+## [v0.1.5]
+
+- Feat
+  - Add `buaa boya rule <ID>` to query sign rule
+  - Add `buaa boya check <ID>` to check-in/out
+  - Add `buaa class query <Date>` to query schedule of some day before class begin
+  - Now `buaa class auto` can checkin before class begin
+  - Now `buaa class checkin <ID>` can checkin before class begin
+- Remove
+  - `Campus::Other` in Boya
+- Chore
+  - Update `buaa-api`
+
 ## [v0.1.4] - 2025-9-25
 
 - Feat

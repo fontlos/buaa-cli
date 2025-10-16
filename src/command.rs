@@ -1,7 +1,7 @@
 use clap::{Parser, Subcommand};
 
 #[derive(Debug, Parser)]
-#[command(version = "0.1.3", about = "A cli for BUAA")]
+#[command(version = "0.1.4", about = "A cli for BUAA")]
 pub struct Cli {
     #[command(subcommand)]
     pub command: Commands,
@@ -22,7 +22,7 @@ pub enum Commands {
     Class(Class),
     #[command(about = "Teacher Evaluation system")]
     Tes(Tes),
-    #[command(about = "Wifi Login & Logout")]
+    #[command(about = "BUAA-Wifi")]
     Wifi(Wifi),
 }
 
@@ -71,7 +71,7 @@ pub enum ClassSub {
         /// Date (format: YYYYMMDD),
         /// Term ID (e.g. `202320242` is 2024 spring term, `202420251` is 2024 autumn term)
         /// or Course ID (from query term courses)
-        id: Option<String>,
+        id: String,
     },
     /// Checkin with Schedule ID
     Checkin {

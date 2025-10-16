@@ -1,9 +1,6 @@
 use buaa_api::Context;
-use buaa_api::api::class::Course;
 use time::format_description;
 use tokio::time::Duration;
-
-use std::fs::OpenOptions;
 
 use crate::utils;
 
@@ -47,91 +44,57 @@ pub async fn auto(context: &Context) {
     println!("[Info]::<Smart Classroom>: Auto checkin finished");
 }
 
-pub async fn query(context: &Context, id: Option<String>) {
+pub async fn query(context: &Context, id: String) {
     let class = context.class();
-    let path = crate::utils::get_path("class-schedule.json").unwrap();
-    match id {
-        Some(id) => {
-            match id.len() {
-                // Course ID
-                5 => {
-                    let schedules = match class.query_course_schedule(&id).await {
-                        Ok(schedule) => schedule,
-                        Err(e) => {
-                            eprintln!("[Error]::<Smart Classroom>: Query schedule failed: {}", e);
-                            return;
-                        }
-                    };
-                    let mut builder = tabled::builder::Builder::new();
-                    builder.push_record(["ID", "Time", "Status"]);
-                    for s in schedules {
-                        builder.push_record([&s.id, &s.time.to_string(), &s.status.to_string()]);
-                    }
-                    crate::utils::print_table(builder);
-                }
-                // Date. Format: YYYYMMDD
-                8 => {
-                    let schedule = match class.query_schedule(&id).await {
-                        Ok(s) => s,
-                        Err(e) => {
-                            eprintln!("[Error]::<Smart Classroom>: Query course failed: {}", e);
-                            return;
-                        }
-                    };
-                    let mut builder = tabled::builder::Builder::new();
-                    builder.push_record(["Course ID", "ID", "Course", "Teacher", "Time", "Status"]);
-                    for c in schedule {
-                        builder.push_record([
-                            &c.course_id,
-                            &c.id,
-                            &c.name,
-                            &c.teacher,
-                            &c.time.to_string(),
-                            &c.status.to_string(),
-                        ]);
-                    }
-                    crate::utils::print_table(builder);
-                }
-                // Term ID
-                9 => {
-                    let courses = match class.query_course(&id).await {
-                        Ok(courses) => courses,
-                        Err(e) => {
-                            eprintln!("[Error]::<Smart Classroom>: Query course failed: {}", e);
-                            return;
-                        }
-                    };
-                    let file = OpenOptions::new()
-                        .read(true)
-                        .write(true)
-                        .create(true)
-                        .truncate(true)
-                        .open(path)
-                        .unwrap();
-                    serde_json::to_writer(file, &courses).unwrap();
-                    let mut builder = tabled::builder::Builder::new();
-                    builder.push_record(["ID", "Course", "Teacher"]);
-                    for c in courses {
-                        builder.push_record([&c.id, &c.name, &c.teacher]);
-                    }
-                    crate::utils::print_table(builder);
-                }
-                _ => {
-                    println!("[Error]::<Smart Classroom>: Invalid ID");
+    match id.len() {
+        // Course ID
+        5 => {
+            let schedules = match class.query_course_schedule(&id).await {
+                Ok(schedule) => schedule,
+                Err(e) => {
+                    eprintln!("[Error]::<Smart Classroom>: Query schedule failed: {}", e);
                     return;
                 }
+            };
+            let mut builder = tabled::builder::Builder::new();
+            builder.push_record(["ID", "Time", "Status"]);
+            for s in schedules {
+                builder.push_record([&s.id, &s.time.to_string(), &s.status.to_string()]);
             }
+            crate::utils::print_table(builder);
         }
-        None => {
-            if !path.exists() {
-                println!(
-                    "[Error]::<Smart Classroom>: No local data. Use `buaa class query <term>` first"
-                );
-                return;
+        // Date. Format: YYYYMMDD
+        8 => {
+            let schedule = match class.query_schedule(&id).await {
+                Ok(s) => s,
+                Err(e) => {
+                    eprintln!("[Error]::<Smart Classroom>: Query course failed: {}", e);
+                    return;
+                }
+            };
+            let mut builder = tabled::builder::Builder::new();
+            builder.push_record(["Course ID", "ID", "Course", "Teacher", "Time", "Status"]);
+            for c in schedule {
+                builder.push_record([
+                    &c.course_id,
+                    &c.id,
+                    &c.name,
+                    &c.teacher,
+                    &c.time.to_string(),
+                    &c.status.to_string(),
+                ]);
             }
-            let file = OpenOptions::new().read(true).open(path).unwrap();
-            let courses: Vec<Course> = serde_json::from_reader(file).unwrap();
-
+            crate::utils::print_table(builder);
+        }
+        // Term ID
+        9 => {
+            let courses = match class.query_course(&id).await {
+                Ok(courses) => courses,
+                Err(e) => {
+                    eprintln!("[Error]::<Smart Classroom>: Query course failed: {}", e);
+                    return;
+                }
+            };
             let mut builder = tabled::builder::Builder::new();
             builder.push_record(["ID", "Course", "Teacher"]);
             for c in courses {
@@ -139,13 +102,16 @@ pub async fn query(context: &Context, id: Option<String>) {
             }
             crate::utils::print_table(builder);
         }
-    };
+        _ => {
+            println!("[Error]::<Smart Classroom>: Invalid ID");
+            return;
+        }
+    }
 }
 
 pub async fn checkin(context: &Context, id: &str) {
     let class = context.class();
-    let id_type = id.len();
-    match id_type {
+    match id.len() {
         // Schedule ID
         7 => {
             match class.checkin(id).await {
