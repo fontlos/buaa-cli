@@ -52,7 +52,7 @@ Whatever you do, it's the first thing you need to do
 For the first time to login:
 
 ```sh
-buaa login -u <username> -p <password>
+buaa login -u <Username> -p <Password>
 ```
 
 You can also use the previous command to change your username and password
@@ -90,18 +90,21 @@ buaa boya status --selected
 buaa class auto
 
 # Query one day's schedule, format: YYYYMMDD
-buaa class query <date>
+buaa class query <Date>
 
 # Query the courses for this term
 # eg. '202420251' means the first term of 2024-2025
-buaa class query <term ID>
+buaa class query <Term ID>
 
 # Query schedules of one course. ID len is 5
-buaa class query <course ID>
+buaa class query <Course ID>
 
 # Check in directly by schedule ID
-# It is even possible to check in for the past or future schedule
-buaa class checkin <schedule ID>
+# It is even possible to check in for the past schedule
+buaa class checkin <Schedule ID>
+
+# Checkin for some day. format: YYYYMMDD
+buaa class checkin <Date>
 ```
 
 ## Teacher Evaluation System (Repairing)

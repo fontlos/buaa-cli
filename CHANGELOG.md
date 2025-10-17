@@ -8,6 +8,7 @@
   - Add `buaa class query <Date>` to query schedule of some day before class begin
   - Now `buaa class auto` can checkin before class begin
   - Now `buaa class checkin <ID>` can checkin before class begin
+  - Add `buaa class checkin <Date>`
 - Remove
   - `Campus::Other` in Boya
 - Chore

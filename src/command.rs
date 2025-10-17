@@ -73,9 +73,9 @@ pub enum ClassSub {
         /// or Course ID (from query term courses)
         id: String,
     },
-    /// Checkin with Schedule ID
+    /// Checkin with Schedule ID or Date (format: YYYYMMDD)
     Checkin {
-        /// Schedule ID
+        /// Schedule ID or Date (format: YYYYMMDD)
         id: String,
     },
 }
