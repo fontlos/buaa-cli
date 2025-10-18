@@ -13,7 +13,7 @@ pub async fn query(context: &Context, all: bool) {
     let courses = match boya.query_course().await {
         Ok(courses) => courses,
         Err(e) => {
-            eprintln!("[Error]::<Boya>: Query failed: {}", e);
+            eprintln!("[Error]::<Boya>: Query failed: {e}");
             return;
         }
     };
@@ -57,7 +57,7 @@ pub async fn query(context: &Context, all: bool) {
     // 如果时间大于 10 那么就等待并提前十秒重置token, 否则直接选课
     if second > 10 {
         let duration = Duration::from_secs((second - 10) as u64);
-        println!("[Info]::<Boya>: Waiting for {} seconds", second);
+        println!("[Info]::<Boya>: Waiting for {second} seconds");
         tokio::time::sleep(duration).await;
         // 提前手动刷新 token
         match boya.login().await {
@@ -65,7 +65,7 @@ pub async fn query(context: &Context, all: bool) {
                 println!("[Info]::<Boya>: Refresh token successfully");
             }
             Err(e) => {
-                eprintln!("[Info]::<Boya>: Refresh token failed: {}", e);
+                eprintln!("[Info]::<Boya>: Refresh token failed: {e}");
                 return;
             }
         };
@@ -96,7 +96,7 @@ pub async fn choose(context: &Context, id: u32) {
             }
             Err(e) => {
                 if i == retry - 1 {
-                    eprintln!("[Error]::<Boya>: Select failed: {}", e);
+                    eprintln!("[Error]::<Boya>: Select failed: {e}");
                     return;
                 }
                 println!(
@@ -117,7 +117,7 @@ pub async fn drop(context: &Context, id: u32) {
             println!("[Info]::<Boya>: Drop successfully");
         }
         Err(e) => {
-            eprintln!("[Error]::<Boya>: Drop failed: {}", e);
+            eprintln!("[Error]::<Boya>: Drop failed: {e}");
         }
     }
 }
@@ -134,7 +134,7 @@ pub async fn rule(context: &Context, id: u32) {
             }
         },
         Err(e) => {
-            eprintln!("[Error]::<Boya>: Query sign rule failed: {}", e);
+            eprintln!("[Error]::<Boya>: Query sign rule failed: {e}");
         }
     }
 }
@@ -150,7 +150,7 @@ pub async fn check(context: &Context, id: u32) {
             }
         },
         Err(e) => {
-            eprintln!("[Error]::<Boya>: Query sign rule failed: {}", e);
+            eprintln!("[Error]::<Boya>: Query sign rule failed: {e}");
             return;
         }
     };
@@ -164,7 +164,7 @@ pub async fn check(context: &Context, id: u32) {
                 println!("[Info]::<Boya>: Check-in successfully");
             }
             Err(e) => {
-                eprintln!("[Error]::<Boya>: Check-in failed: {}", e);
+                eprintln!("[Error]::<Boya>: Check-in failed: {e}");
             }
         }
         return;
@@ -179,7 +179,7 @@ pub async fn check(context: &Context, id: u32) {
                 println!("[Info]::<Boya>: Check-out successfully");
             }
             Err(e) => {
-                eprintln!("[Error]::<Boya>: Check-out failed: {}", e);
+                eprintln!("[Error]::<Boya>: Check-out failed: {e}");
             }
         }
         return;
@@ -195,11 +195,9 @@ pub async fn status(context: &Context, selected: bool) {
             Ok(s) => {
                 println!("[Info]::<Boya>: Selected courses:");
                 print_selected(&s);
-                return;
             }
             Err(e) => {
-                eprintln!("[Error]::<Boya>: Query failed: {}", e);
-                return;
+                eprintln!("[Error]::<Boya>: Query failed: {e}");
             }
         }
     } else {
@@ -207,11 +205,9 @@ pub async fn status(context: &Context, selected: bool) {
             Ok(s) => {
                 println!("[Info]::<Boya>: Statistic information:");
                 print_statistic(&s);
-                return;
             }
             Err(e) => {
-                eprintln!("[Error]::<Boya>: Query failed: {}", e);
-                return;
+                eprintln!("[Error]::<Boya>: Query failed: {e}");
             }
         }
     }
@@ -237,8 +233,7 @@ fn tabled_schedule(time: &Schedule) -> String {
     let formatted_select_end = time.select_end.format(&format_string).unwrap();
 
     format!(
-        "             CourseTime\n{} - {}\n             SelectTime\n{} - {}",
-        formatted_course_start, formatted_course_end, formatted_select_start, formatted_select_end
+        "             CourseTime\n{formatted_course_start} - {formatted_course_end}\n             SelectTime\n{formatted_select_start} - {formatted_select_end}"
     )
 }
 

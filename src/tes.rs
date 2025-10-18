@@ -9,11 +9,9 @@ pub async fn login(context: &Context) {
     match tes.login().await {
         Ok(()) => {
             println!("[Info]::<TES>: Login successfully");
-            return;
         }
         Err(e) => {
-            eprintln!("[Error]::<TES>: Login failed: {}", e);
-            return;
+            eprintln!("[Error]::<TES>: Login failed: {e}");
         }
     }
 }
@@ -25,7 +23,7 @@ pub async fn list(context: &Context, all: bool) {
     let list = match tes.get_evaluation_list().await {
         Ok(list) => list,
         Err(e) => {
-            eprintln!("[Error]::<TES>: Get list failed: {}", e);
+            eprintln!("[Error]::<TES>: Get list failed: {e}");
             return;
         }
     };
@@ -50,7 +48,7 @@ pub async fn list(context: &Context, all: bool) {
     let index = match str.trim().parse::<usize>() {
         Ok(i) => i,
         Err(e) => {
-            eprintln!("[Error]::<TES>: Invalid index: {}", e);
+            eprintln!("[Error]::<TES>: Invalid index: {e}");
             return;
         }
     };
@@ -78,7 +76,7 @@ async fn submit(context: &Context, item: &EvaluationListItem) {
     let form = match tes.get_evaluation_form(item).await {
         Ok(f) => f,
         Err(e) => {
-            eprintln!("[Error]::<TES>: Get form failed: {}", e);
+            eprintln!("[Error]::<TES>: Get form failed: {e}");
             return;
         }
     };
@@ -127,7 +125,7 @@ async fn submit(context: &Context, item: &EvaluationListItem) {
 
     match tes.submit_evaluation(complete).await {
         Ok(_) => println!("[Info]::<TES>: Submit successfully"),
-        Err(e) => eprintln!("[Error]::<TES>: Submit failed: {}", e),
+        Err(e) => eprintln!("[Error]::<TES>: Submit failed: {e}"),
     }
 
     println!("[Info]::<TES>: ======================== Manual fill end ========================");
@@ -150,7 +148,7 @@ pub async fn auto(context: &Context) {
             .filter(|item| !item.state)
             .collect::<Vec<EvaluationListItem>>(),
         Err(e) => {
-            eprintln!("[Error]::<TES>: Get list failed: {}", e);
+            eprintln!("[Error]::<TES>: Get list failed: {e}");
             return;
         }
     };
@@ -163,7 +161,7 @@ pub async fn auto(context: &Context) {
         let form = match tes.get_evaluation_form(&l).await {
             Ok(f) => f,
             Err(e) => {
-                eprintln!("[Error]::<TES>: Get form failed: {}", e);
+                eprintln!("[Error]::<TES>: Get form failed: {e}");
                 return;
             }
         };
@@ -171,7 +169,7 @@ pub async fn auto(context: &Context) {
         println!("[Info]::<TES>: Finall score is {}", complete.score());
         match tes.submit_evaluation(complete).await {
             Ok(_) => println!("[Info]::<TES>: Submit successfully"),
-            Err(e) => eprintln!("[Error]::<TES>: Submit failed: {}", e),
+            Err(e) => eprintln!("[Error]::<TES>: Submit failed: {e}"),
         }
         println!("[Info]::<TES>: Wait 1 second to avoid too fast");
         std::thread::sleep(std::time::Duration::from_secs(1));

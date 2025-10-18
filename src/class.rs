@@ -21,7 +21,7 @@ pub async fn query(context: &Context, id: String) {
             let schedules = match class.query_course_schedule(&id).await {
                 Ok(schedule) => schedule,
                 Err(e) => {
-                    eprintln!("[Error]::<Smart Classroom>: Query schedule failed: {}", e);
+                    eprintln!("[Error]::<Smart Classroom>: Query schedule failed: {e}");
                     return;
                 }
             };
@@ -37,7 +37,7 @@ pub async fn query(context: &Context, id: String) {
             let schedule = match class.query_schedule(&id).await {
                 Ok(s) => s,
                 Err(e) => {
-                    eprintln!("[Error]::<Smart Classroom>: Query course failed: {}", e);
+                    eprintln!("[Error]::<Smart Classroom>: Query course failed: {e}");
                     return;
                 }
             };
@@ -60,7 +60,7 @@ pub async fn query(context: &Context, id: String) {
             let courses = match class.query_course(&id).await {
                 Ok(courses) => courses,
                 Err(e) => {
-                    eprintln!("[Error]::<Smart Classroom>: Query course failed: {}", e);
+                    eprintln!("[Error]::<Smart Classroom>: Query course failed: {e}");
                     return;
                 }
             };
@@ -73,7 +73,6 @@ pub async fn query(context: &Context, id: String) {
         }
         _ => {
             println!("[Error]::<Smart Classroom>: Invalid ID");
-            return;
         }
     }
 }
@@ -90,7 +89,6 @@ pub async fn checkin(context: &Context, id: &str) {
         }
         _ => {
             println!("[Error]::<Smart Classroom>: Invalid ID");
-            return;
         }
     }
 }
@@ -98,10 +96,10 @@ pub async fn checkin(context: &Context, id: &str) {
 pub async fn checkin_date(context: &Context, date: &str) {
     let class = context.class();
 
-    let schedule = match class.query_schedule(&date).await {
+    let schedule = match class.query_schedule(date).await {
         Ok(s) => s,
         Err(e) => {
-            eprintln!("[Error]::<Smart Classroom>: Query schedule failed: {}", e);
+            eprintln!("[Error]::<Smart Classroom>: Query schedule failed: {e}");
             return;
         }
     };
@@ -122,10 +120,10 @@ pub async fn checkin_date(context: &Context, date: &str) {
                 // 考虑到准时可能导致失败, 我们加上一个 5 到 240 秒的随机扰动
                 let rand = utils::simple_rand_range(5, 240);
                 let wait = second as u64 + rand;
-                println!("[Info]::<Smart Classroom>: Waiting for {} seconds", wait);
+                println!("[Info]::<Smart Classroom>: Waiting for {wait} seconds");
                 tokio::time::sleep(Duration::from_secs(wait)).await;
             }
-            checkin_schedule(&context, &s.id).await;
+            checkin_schedule(context, &s.id).await;
         }
     }
 }
@@ -137,8 +135,7 @@ pub async fn checkin_schedule(context: &Context, id: &str) {
             println!("[Info]::<Smart Classroom>: Checkin successfully");
         }
         Err(e) => {
-            eprintln!("[Error]::<Smart Classroom>: Checkin failed: {}", e);
+            eprintln!("[Error]::<Smart Classroom>: Checkin failed: {e}");
         }
     }
-    return;
 }

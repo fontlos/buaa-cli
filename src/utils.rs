@@ -55,5 +55,5 @@ pub fn print_table(builder: Builder) {
         .with(Alignment::center())
         .with(Alignment::center_vertical())
         .to_string();
-    println!("{}", table);
+    println!("{table}");
 }

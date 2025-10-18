@@ -6,7 +6,7 @@ pub async fn login(context: &Context) {
         Ok(_) => println!(
             "[Info]::<WIFI>: Login successfully, Please wait a few seconds for the server to respond"
         ),
-        Err(e) => eprintln!("[Info]::<WIFI>: Login failed: {}", e),
+        Err(e) => eprintln!("[Info]::<WIFI>: Login failed: {e}"),
     };
 }
 
@@ -14,6 +14,6 @@ pub async fn logout(context: &Context) {
     let wifi = context.wifi();
     match wifi.logout().await {
         Ok(_) => println!("[Info]::<WIFI>: Logout successfully"),
-        Err(e) => eprintln!("[Info]::<WIFI>: Logout failed: {}", e),
+        Err(e) => eprintln!("[Info]::<WIFI>: Logout failed: {e}"),
     };
 }

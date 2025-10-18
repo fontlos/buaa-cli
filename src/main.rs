@@ -27,7 +27,7 @@ async fn main() {
             }
             match context.sso().login().await {
                 Ok(_) => println!("[Info]::<SSO>: Login successfully"),
-                Err(e) => eprintln!("[Info]::<SSO>: Login failed: {}", e),
+                Err(e) => eprintln!("[Info]::<SSO>: Login failed: {e}"),
             };
         }
         Commands::Boya(Boya { command }) => match command {
