@@ -1,6 +1,6 @@
 # BUAA Cli: Powerful tool to Make BUAA Great Again
 
-## [v0.1.5]
+## [v0.2.0]
 
 - Feat
   - Add `buaa boya rule <ID>` to query sign rule
