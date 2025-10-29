@@ -251,12 +251,18 @@ fn tabled_capacity(capacity: &Capacity) -> String {
     format!("{} / {}", capacity.current, capacity.max)
 }
 
-fn tabled_campus(capacity: &Campus) -> String {
-    match capacity {
-        Campus::XueYuanLu => "学院路".to_string(),
-        Campus::ShaHe => "沙河".to_string(),
-        Campus::All => "全部".to_string(),
+fn tabled_campuses(campuses: &Vec<Campus>) -> String {
+    let mut campus_names: Vec<&str> = Vec::new();
+    for campus in campuses {
+        campus_names.push(match campus {
+            Campus::XueYuanLu => "学院路",
+            Campus::ShaHe => "沙河",
+            Campus::HangZhou => "杭州",
+            Campus::All => "全部",
+            Campus::Unknown => "未知",
+        });
     }
+    campus_names.join(", ")
 }
 
 fn print_course<'a, I>(data: I)
@@ -275,7 +281,7 @@ where
             &tabled_schedule(&c.schedule),
             &tabled_category(&c.category),
             &tabled_capacity(&c.capacity),
-            &tabled_campus(&c.campus),
+            &tabled_campuses(&c.campuses),
             &c.selected.to_string(),
         ]);
     }
