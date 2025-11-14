@@ -4,7 +4,7 @@ version = "0.1.4"
 edition = "2024"
 
 [dependencies]
-buaa_api = { git = "https://github.com/fontlos/buaa-api", rev = "ace837d"}
+buaa_api = { git = "https://github.com/fontlos/buaa-api", rev = "09e5111"}
 # buaa_api = { path = "../buaa-api" }
 clap = { version = "4.5.51", features = ["derive"] }
 serde = { version = "1.0.228", features = ["derive"] }
