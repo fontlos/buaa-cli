@@ -1,10 +1,12 @@
 use clap::{Parser, Subcommand};
 
 #[derive(Debug, Parser)]
-#[command(version = "0.1.4", about = "A cli for BUAA")]
+#[command(version = "0.2.0", about = "A cli for BUAA")]
 pub struct Cli {
     #[command(subcommand)]
     pub command: Commands,
+    #[arg(short, long, default_value_t = false)]
+    pub disable_tls: bool,
 }
 
 #[derive(Debug, Subcommand)]

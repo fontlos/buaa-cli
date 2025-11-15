@@ -5,17 +5,32 @@ mod tes;
 mod utils;
 mod wifi;
 
-use buaa_api::Context;
+use buaa_api::exports::ContextBuilder;
+use buaa_api::store::cookies::AtomicCookieStore;
+use buaa_api::store::cred::CredentialStore;
 use clap::Parser;
+
+use std::sync::Arc;
 
 use command::{Boya, BoyaSub, Class, ClassSub, Cli, Commands, Tes, TesSub, Wifi, WifiSub};
 
 #[tokio::main]
 async fn main() {
     let path = utils::get_path("./").unwrap();
-    let context = Context::with_auth(&path);
+    let cookies_path = path.join("cookies.json");
+    let cookies = Arc::new(AtomicCookieStore::new(AtomicCookieStore::from_file(
+        cookies_path,
+    )));
+    let cred_path = path.join("cred.json");
+    let cred = CredentialStore::from_file(cred_path);
 
     let cli = Cli::parse();
+
+    let context = ContextBuilder::new()
+        .cookies(cookies)
+        .cred(cred)
+        .tls(!cli.disable_tls)
+        .build();
 
     match cli.command {
         Commands::Login { username, password } => {
