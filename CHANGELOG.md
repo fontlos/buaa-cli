@@ -1,6 +1,11 @@
 # BUAA Cli: Powerful tool to Make BUAA Great Again
 
-## [v0.2.0]
+## [v0.2.1] - 2025-11-21
+
+- Fix
+  - Add `disable-tls` flag to disable TLS if necessary. Sometimes server SSL cred maybe invalid
+
+## [v0.2.0] - 2025-10-26
 
 - Feat
   - Add `buaa boya rule <ID>` to query sign rule

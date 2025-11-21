@@ -131,3 +131,11 @@ buaa wifi logout
 ```
 
 On the Windows platform, you can use a `.bat` file and add it to the `C:\Users\<Username>\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup` folder, so that you can automatically connect to WiFi at boot
+
+## Other
+
+Sometimes Server's SSL certificate may be invalid, you can use `--disable-tls`
+
+```sh
+buaa --disable-tls [COMMAND]
+```
