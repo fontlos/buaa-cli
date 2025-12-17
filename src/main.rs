@@ -6,11 +6,9 @@ mod utils;
 mod wifi;
 
 use buaa_api::exports::ContextBuilder;
-use buaa_api::store::cookies::AtomicCookieStore;
+use buaa_api::store::cookies::CookieStore;
 use buaa_api::store::cred::CredentialStore;
 use clap::Parser;
-
-use std::sync::Arc;
 
 use command::{Boya, BoyaSub, Class, ClassSub, Cli, Commands, Tes, TesSub, Wifi, WifiSub};
 
@@ -18,11 +16,21 @@ use command::{Boya, BoyaSub, Class, ClassSub, Cli, Commands, Tes, TesSub, Wifi, 
 async fn main() {
     let path = utils::get_path("./").unwrap();
     let cookies_path = path.join("cookies.json");
-    let cookies = Arc::new(AtomicCookieStore::new(AtomicCookieStore::from_file(
-        cookies_path,
-    )));
+    let cookies = match CookieStore::from_file(cookies_path) {
+        Ok(c) => c,
+        Err(_) => {
+            eprintln!("[Warning]: Failed to read cookies.json, use default");
+            CookieStore::default()
+        },
+    };
     let cred_path = path.join("cred.json");
-    let cred = CredentialStore::from_file(cred_path);
+    let cred = match CredentialStore::from_file(cred_path) {
+        Ok(c) => c,
+        Err(_) => {
+            eprintln!("[Warning]: Failed to read cred.json, use default");
+            CredentialStore::default()
+        },
+    };
 
     let cli = Cli::parse();
 
@@ -53,7 +61,7 @@ async fn main() {
                 boya::rule(&context, id).await;
             }
             BoyaSub::Select { id } => {
-                boya::choose(&context, id).await;
+                boya::select(&context, id).await;
             }
             BoyaSub::Drop { id } => {
                 boya::drop(&context, id).await;
@@ -93,5 +101,10 @@ async fn main() {
             }
         },
     }
-    context.save_auth(&path);
+    match context.save_auth(&path) {
+        Ok(_) => {},
+        Err(_) => {
+            eprintln!("[Error]: Failed to save auth data");
+        },
+    };
 }

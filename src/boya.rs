@@ -80,10 +80,10 @@ pub async fn query(context: &Context, all: bool) {
         tokio::time::sleep(duration).await;
     }
 
-    choose(context, id).await;
+    select(context, id).await;
 }
 
-pub async fn choose(context: &Context, id: u32) {
+pub async fn select(context: &Context, id: u32) {
     let boya = context.boya();
     let retry = 20;
     let retry_interval = Duration::from_millis(250);
