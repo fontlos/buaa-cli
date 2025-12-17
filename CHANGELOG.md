@@ -1,5 +1,12 @@
 # BUAA Cli: Powerful tool to Make BUAA Great Again
 
+## [v0.3.0] - 2025-12-17
+
+- Refactor(BREAKING)
+  - Update `buaa-api`, use new cookie store. Need relogin
+- Fix
+  - `boya::SignRule` parse failed (cause by server update)
+
 ## [v0.2.1] - 2025-11-21
 
 - Fix
