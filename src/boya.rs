@@ -115,7 +115,7 @@ pub async fn drop(context: &Context, id: u32) {
 
 pub async fn check(context: &Context, id: u32) {
     let boya = context.boya();
-    let rule = match boya.query_course(id).await {
+    let config = match boya.query_course(id).await {
         Ok(c) => match c.sign_config {
             Some(config) => config,
             None => {
@@ -124,16 +124,20 @@ pub async fn check(context: &Context, id: u32) {
             }
         },
         Err(e) => {
-            eprintln!("[Error]::<Boya>: Query sign rule failed: {e}");
+            eprintln!("[Error]::<Boya>: Query sign config failed: {e}");
             return;
         }
     };
-    if rule.checkin_start > utils::get_datetime() {
-        println!("[Info]::<Boya>: Check-in has not started yet");
-        return;
-    }
-    if rule.checkin_end > utils::get_datetime() {
-        match boya.checkin_course(id, &rule.coordinate).await {
+    let now = utils::get_datetime();
+    if now < config.checkin_end {
+        if now < config.checkin_start {
+            let duration = config.checkin_start - now;
+            let second = duration.whole_seconds();
+            let duration = Duration::from_secs(second as u64);
+            println!("[Info]::<Boya>: Waiting for {second} seconds to check-in");
+            tokio::time::sleep(duration).await;
+        }
+        match boya.checkin_course(id, &config.coordinate).await {
             Ok(_) => {
                 println!("[Info]::<Boya>: Check-in successfully");
             }
@@ -141,14 +145,19 @@ pub async fn check(context: &Context, id: u32) {
                 eprintln!("[Error]::<Boya>: Check-in failed: {e}");
             }
         }
-        return;
     }
-    if rule.checkout_start > utils::get_datetime() {
-        println!("[Info]::<Boya>: Check-out has not started yet");
-        return;
-    }
-    if rule.checkout_end > utils::get_datetime() {
-        match boya.checkout_course(id, &rule.coordinate).await {
+
+    println!("[Info]::<Boya>: Check-in has passed");
+
+    if now < config.checkout_end {
+        if now < config.checkout_start {
+            let duration = config.checkout_start - now;
+            let second = duration.whole_seconds();
+            let duration = Duration::from_secs(second as u64);
+            println!("[Info]::<Boya>: Waiting for {second} seconds to check-out");
+            tokio::time::sleep(duration).await;
+        }
+        match boya.checkout_course(id, &config.coordinate).await {
             Ok(_) => {
                 println!("[Info]::<Boya>: Check-out successfully");
             }
@@ -156,9 +165,9 @@ pub async fn check(context: &Context, id: u32) {
                 eprintln!("[Error]::<Boya>: Check-out failed: {e}");
             }
         }
-        return;
     }
-    println!("[Info]::<Boya>: Check-in/out time has passed");
+
+    println!("[Info]::<Boya>: Check-out has passed");
 }
 
 pub async fn status(context: &Context, selected: bool) {
