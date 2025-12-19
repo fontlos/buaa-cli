@@ -1,6 +1,6 @@
 use buaa_api::Context;
 use buaa_api::api::boya::{
-    Campus, Capacity, Category, Course, Schedule, Selected, SignRule, Statistic,
+    Campus, Capacity, Category, Course, Schedule, Selected, SignConfig, Statistic,
 };
 use tokio::time::Duration;
 
@@ -10,7 +10,7 @@ use crate::utils;
 
 pub async fn query(context: &Context, all: bool) {
     let boya = context.boya();
-    let courses = match boya.query_course().await {
+    let courses = match boya.query_courses().await {
         Ok(courses) => courses,
         Err(e) => {
             eprintln!("[Error]::<Boya>: Query failed: {e}");
@@ -124,10 +124,10 @@ pub async fn drop(context: &Context, id: u32) {
 
 pub async fn rule(context: &Context, id: u32) {
     let boya = context.boya();
-    match boya.query_sign_rule(id).await {
-        Ok(rule) => match rule {
-            Some(rule) => {
-                print_sign_rule(&rule);
+    match boya.query_course(id).await {
+        Ok(c) => match c.sign_config {
+            Some(config) => {
+                print_sign_config(&config);
             }
             None => {
                 println!("[Info]::<Boya>: This course does not support check-in/out");
@@ -141,9 +141,9 @@ pub async fn rule(context: &Context, id: u32) {
 
 pub async fn check(context: &Context, id: u32) {
     let boya = context.boya();
-    let rule = match boya.query_sign_rule(id).await {
-        Ok(rule) => match rule {
-            Some(rule) => rule,
+    let rule = match boya.query_course(id).await {
+        Ok(c) => match c.sign_config {
+            Some(config) => config,
             None => {
                 println!("[Info]::<Boya>: This course does not support check-in/out");
                 return;
@@ -271,7 +271,7 @@ where
 {
     let mut builder = tabled::builder::Builder::new();
     builder.push_record([
-        "ID", "Course", "Position", "Time", "Kind", "Capacity", "Campus", "State",
+        "ID", "Course", "Position", "Time", "Kind", "Capacity", "Campus", "IsSelected", "CanAuto"
     ]);
     for c in data {
         builder.push_record([
@@ -283,6 +283,7 @@ where
             &tabled_capacity(&c.capacity),
             &tabled_campuses(&c.campuses),
             &c.selected.to_string(),
+            &c.sign_config.is_some().to_string(),
         ]);
     }
     crate::utils::print_table(builder);
@@ -305,9 +306,9 @@ fn print_selected(data: &Vec<Selected>) {
     crate::utils::print_table(builder);
 }
 
-// ======================= Print Sign Rule =======================
+// ======================= Print Sign Config =======================
 
-fn print_sign_rule(data: &SignRule) {
+fn print_sign_config(data: &SignConfig) {
     let mut builder = tabled::builder::Builder::new();
     builder.push_record([
         "Check-in Start",

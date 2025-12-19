@@ -1,5 +1,12 @@
 # BUAA Cli: Powerful tool to Make BUAA Great Again
 
+## [v0.3.1] - 2025-12-19
+
+- Fix:
+  - `boya::SignInfo` parse failed
+- Chore
+  - Update `buaa-api`
+
 ## [v0.3.0] - 2025-12-17
 
 - Refactor(BREAKING)
