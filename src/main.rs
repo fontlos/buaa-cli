@@ -57,9 +57,6 @@ async fn main() {
             BoyaSub::Query { all } => {
                 boya::query(&context, all).await;
             }
-            BoyaSub::Rule { id } => {
-                boya::rule(&context, id).await;
-            }
             BoyaSub::Select { id } => {
                 boya::select(&context, id).await;
             }

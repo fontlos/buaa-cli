@@ -42,8 +42,6 @@ pub enum BoyaSub {
         /// By default, only optional courses are displayed
         all: bool,
     },
-    /// Query sign rule. Contains check-in/out time and coordinate information
-    Rule { id: u32 },
     /// Selete by ID immediately. No guarantee for valid token
     Select { id: u32 },
     /// Drop by ID

@@ -1,6 +1,6 @@
 use buaa_api::Context;
 use buaa_api::api::boya::{
-    Campus, Capacity, Category, Course, Schedule, Selected, SignConfig, Statistic,
+    Campus, Capacity, Category, Course, Schedule, Selected, Statistic,
 };
 use tokio::time::Duration;
 
@@ -122,23 +122,6 @@ pub async fn drop(context: &Context, id: u32) {
     }
 }
 
-pub async fn rule(context: &Context, id: u32) {
-    let boya = context.boya();
-    match boya.query_course(id).await {
-        Ok(c) => match c.sign_config {
-            Some(config) => {
-                print_sign_config(&config);
-            }
-            None => {
-                println!("[Info]::<Boya>: This course does not support check-in/out");
-            }
-        },
-        Err(e) => {
-            eprintln!("[Error]::<Boya>: Query sign rule failed: {e}");
-        }
-    }
-}
-
 pub async fn check(context: &Context, id: u32) {
     let boya = context.boya();
     let rule = match boya.query_course(id).await {
@@ -233,7 +216,7 @@ fn tabled_schedule(time: &Schedule) -> String {
     let formatted_select_end = time.select_end.format(&format_string).unwrap();
 
     format!(
-        "             CourseTime\n{formatted_course_start} - {formatted_course_end}\n             SelectTime\n{formatted_select_start} - {formatted_select_end}"
+        "   CourseTime\n{formatted_course_start}\n{formatted_course_end}\n   SelectTime\n{formatted_select_start}\n{formatted_select_end}"
     )
 }
 
@@ -271,7 +254,7 @@ where
 {
     let mut builder = tabled::builder::Builder::new();
     builder.push_record([
-        "ID", "Course", "Position", "Time", "Kind", "Capacity", "Campus", "IsSelected", "CanAuto"
+        "ID", "Course", "Position", "Time", "Kind", "Capacity", "Campus", "IsSelected", "CanCheck"
     ]);
     for c in data {
         builder.push_record([
@@ -308,23 +291,23 @@ fn print_selected(data: &Vec<Selected>) {
 
 // ======================= Print Sign Config =======================
 
-fn print_sign_config(data: &SignConfig) {
-    let mut builder = tabled::builder::Builder::new();
-    builder.push_record([
-        "Check-in Start",
-        "Check-in End",
-        "Check-out Start",
-        "Check-out End",
-        "Coordinate",
-    ]);
-    builder.push_record([
-        &data.checkin_start.to_string(),
-        &data.checkin_end.to_string(),
-        &data.checkout_start.to_string(),
-        &data.checkout_end.to_string(),
-    ]);
-    crate::utils::print_table(builder);
-}
+// fn print_sign_config(data: &SignConfig) {
+//     let mut builder = tabled::builder::Builder::new();
+//     builder.push_record([
+//         "Check-in Start",
+//         "Check-in End",
+//         "Check-out Start",
+//         "Check-out End",
+//         "Coordinate",
+//     ]);
+//     builder.push_record([
+//         &data.checkin_start.to_string(),
+//         &data.checkin_end.to_string(),
+//         &data.checkout_start.to_string(),
+//         &data.checkout_end.to_string(),
+//     ]);
+//     crate::utils::print_table(builder);
+// }
 
 // ======================= Print Statistic =======================
 
