@@ -4,8 +4,6 @@ use buaa_api::api::boya::{
 };
 use tokio::time::Duration;
 
-use std::io::Write;
-
 use crate::utils;
 
 pub async fn query(context: &Context, all: bool) {
@@ -30,30 +28,28 @@ pub async fn query(context: &Context, all: bool) {
 
         print_course(courses);
     }
-    // 输入 ID 选择课程
-    print!("[Info]::<Boya>: Type ID to select course: ");
-    std::io::stdout().flush().unwrap();
-    let mut id = String::new();
-    std::io::stdin().read_line(&mut id).unwrap();
+}
 
-    let id: u32 = match id.trim().parse() {
-        Ok(num) => num,
-        Err(_) => {
-            eprintln!("[Error]::<Boya>: Invalid ID");
+pub async fn select(context: &Context, id: u32) {
+    let boya = context.boya();
+
+    let course = match boya.query_course(id).await {
+        Ok(c) => c,
+        Err(e) => {
+            eprintln!("[Error]::<Boya>: No course found: {e}");
             return;
         }
     };
 
-    let course = match courses.iter().find(|course| course.id == id) {
-        Some(course) => course,
-        None => {
-            eprintln!("[Error]::<Boya>: Course not found");
-            return;
-        }
-    };
+    if course.selected {
+        println!("[Info]::<Boya>: You have already selected this course");
+        return;
+    }
+
     let now = utils::get_datetime();
     let duration = course.schedule.select_start - now;
     let second = duration.whole_seconds();
+
     // 如果时间大于 10 那么就等待并提前十秒重置token, 否则直接选课
     if second > 10 {
         let duration = Duration::from_secs((second - 10) as u64);
@@ -80,11 +76,6 @@ pub async fn query(context: &Context, all: bool) {
         tokio::time::sleep(duration).await;
     }
 
-    select(context, id).await;
-}
-
-pub async fn select(context: &Context, id: u32) {
-    let boya = context.boya();
     let retry = 20;
     let retry_interval = Duration::from_millis(250);
     let mut interval = tokio::time::interval(retry_interval);
