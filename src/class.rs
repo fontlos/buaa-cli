@@ -1,4 +1,5 @@
 use buaa_api::Context;
+use buaa_api::crypto::rand::{Rng, WyRng};
 use time::format_description;
 use tokio::time::Duration;
 
@@ -118,8 +119,9 @@ pub async fn checkin_date(context: &Context, date: &str) {
             if second > 0 {
                 // 如果是预签到, 我们尽可能早一点, 但加上随机扰动, 模拟人类行为
                 // 考虑到准时可能导致失败, 我们加上一个 5 到 240 秒的随机扰动
-                let rand = utils::simple_rand_range(5, 240);
-                let wait = second as u64 + rand;
+                let mut rng = WyRng::new();
+                let rand = rng.random_range(5u8..=240);
+                let wait = second as u64 + rand as u64;
                 println!("[Info]::<Smart Classroom>: Waiting for {wait} seconds");
                 tokio::time::sleep(Duration::from_secs(wait)).await;
             }
