@@ -17,7 +17,8 @@ Now throw it in the trash and try this tool
 
 > 注: 本项目只用于学习分享, 请于下载后 24 小时内删除, 使用产生的一切问题由使用者自行承担, 如有侵权我将删除此储存库和软件
 >
-> Tips: This project is only for learning and sharing, please delete within 24 hours after downloading, all problems caused by the use are borne by the user, if there is any infringement I will delete this repository and software
+> Tips: This project is only for learning and sharing, please delete within 24 hours after downloading,
+> all problems caused by the use are borne by the user, if there is any infringement I will delete this repository and software
 
 # Features
 
@@ -61,8 +62,13 @@ You can also use the previous command to change your username and password
 
 ```sh
 # Query the available courses
-# You will then be asked to enter an ID to automatically select the course
 buaa boya query
+
+# Query all courses
+buaa boya query --all
+
+# Query courses with pagination, usually need `-all`
+buaa boya query --page 2
 
 # Select a course directly by ID
 buaa boya select <ID>
@@ -70,17 +76,14 @@ buaa boya select <ID>
 # Drop a course directly by ID
 buaa boya drop  <ID>
 
-# Query course's sign rule to check whether it can check-in/out by self
-buaa boya rule <ID>
-
 # If command above print rule, this means you can use this to check-in/out by self
 buaa boya check <ID>
 
+# Query selected courses
+buaa boya selected
+
 # Query statistics information
 buaa boya status
-
-# Query selected courses
-buaa boya status --selected
 ```
 
 ## Smart Classroom
@@ -113,11 +116,9 @@ buaa class checkin <Date>
 # List the forms that need to be filled out and use the index to fill out the specified form
 buaa tes list
 
-# Fill out all the forms in order
-buaa tes fill
-
 # Automatically fill all forms
-# Warning: This command may not be as expected in the test, the score is correct, but it will show an abnormality, and will try to fix it the next time the evaluation system is turned on
+# Warning: This command may not be as expected in the test, the score is correct,
+# but it will show an abnormality, and will try to fix it the next time the evaluation system is turned on
 buaa tes auto
 ```
 
@@ -130,7 +131,9 @@ buaa wifi login
 buaa wifi logout
 ```
 
-On the Windows platform, you can use a `.bat` file and add it to the `C:\Users\<Username>\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup` folder, so that you can automatically connect to WiFi at boot
+On the Windows platform, you can use a `.bat` file
+and add it to the `C:\Users\<Username>\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup` folder,
+so that you can automatically connect to WiFi at boot
 
 ## Other
 

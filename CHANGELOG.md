@@ -1,5 +1,20 @@
 # BUAA Cli: Powerful tool to Make BUAA Great Again
 
+## [v0.3.2]
+
+- Feat
+  - Add `CanCheck` field in `buaa boya query` print table
+  - `buaa boya check` can waiting for check-in/out
+  - Add `--page` for `buaa boya query` for pagination
+- Remove
+  - `buaa boya rule`
+- Refactor
+  - Move waiting logic from `buaa boya query` to `buaa boya select`
+  - Use RNG from `buaa_api`
+  - Split `buaa boya selected` and `buaa boya status`
+- Chore
+  - Update `buaa_api`
+
 ## [v0.3.1] - 2025-12-19
 
 - Fix:
