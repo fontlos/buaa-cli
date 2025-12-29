@@ -1,43 +1,28 @@
 use buaa_api::Context;
-use buaa_api::api::tes::{EvaluationAnswer, EvaluationListItem};
+use buaa_api::api::tes::{Answer, Task};
 
 use std::io::Write;
 
-pub async fn login(context: &Context) {
-    let tes = context.tes();
-    // 尝试登录, 如果是登录过期, 就继续执行, 其他错误就直接返回
-    match tes.login().await {
-        Ok(()) => {
-            println!("[Info]::<TES>: Login successfully");
-        }
-        Err(e) => {
-            eprintln!("[Error]::<TES>: Login failed: {e}");
-        }
-    }
-}
-
 pub async fn list(context: &Context, all: bool) {
-    login(context).await;
-
     let tes = context.tes();
-    let list = match tes.get_evaluation_list().await {
+    let tasks = match tes.get_task().await {
         Ok(list) => list,
         Err(e) => {
-            eprintln!("[Error]::<TES>: Get list failed: {e}");
+            eprintln!("[Error]::<TES>: Get task failed: {e}");
             return;
         }
     };
 
-    let list = if all {
-        list
+    let tasks = if all {
+        tasks
     } else {
-        list.into_iter().filter(|l| !l.state).collect::<Vec<_>>()
+        tasks.into_iter().filter(|l| !l.state).collect::<Vec<_>>()
     };
 
     let mut builder = tabled::builder::Builder::new();
     builder.push_record(["Course", "Teacher", "State"]);
-    for l in &list {
-        builder.push_record([&l.course, &l.teacher, &l.state.to_string()]);
+    for t in &tasks {
+        builder.push_record([&t.course, &t.teacher, &t.state.to_string()]);
     }
     crate::utils::print_table(builder);
 
@@ -53,44 +38,43 @@ pub async fn list(context: &Context, all: bool) {
         }
     };
 
-    let l = match list.get(index) {
-        Some(l) => l,
+    let task = match tasks.get(index) {
+        Some(task) => task,
         None => {
             eprintln!("[Error]::<TES>: Index out of range");
             return;
         }
     };
-    submit(context, l).await;
+    fill(context, task).await;
 }
 
-async fn submit(context: &Context, item: &EvaluationListItem) {
-    login(context).await;
+async fn fill(context: &Context, task: &Task) {
     println!("[Info]::<TES>: ======================= Manual fill start =======================");
     let tes = context.tes();
 
     println!(
         "[Info]::<TES>: Course: {}, Teacher: {}",
-        item.course, item.teacher
+        task.course, task.teacher
     );
     println!("[Info]::<TES>: Option is score, type the index");
-    let form = match tes.get_evaluation_form(item).await {
+    let form = match tes.get_form(task).await {
         Ok(f) => f,
         Err(e) => {
             eprintln!("[Error]::<TES>: Get form failed: {e}");
             return;
         }
     };
-    let mut ans: Vec<EvaluationAnswer> = Vec::with_capacity(form.questions.len());
+    let mut ans: Vec<Answer> = Vec::with_capacity(form.questions.len());
     for (i, q) in form.questions.iter().enumerate() {
         println!("[Info]::<TES>: {}. {}", i + 1, q.name);
         if q.is_choice {
             let mut builder = tabled::builder::Builder::new();
             builder.push_record(["A", "B", "C", "D"]);
             builder.push_record([
-                &q.options[0].score.to_string(),
-                &q.options[1].score.to_string(),
-                &q.options[2].score.to_string(),
-                &q.options[3].score.to_string(),
+                &q.choices[0].score.to_string(),
+                &q.choices[1].score.to_string(),
+                &q.choices[2].score.to_string(),
+                &q.choices[3].score.to_string(),
             ]);
             crate::utils::print_table(builder);
         }
@@ -109,9 +93,9 @@ async fn submit(context: &Context, item: &EvaluationListItem) {
                     return;
                 }
             };
-            ans.push(EvaluationAnswer::Choice(index));
+            ans.push(Answer::Choice(index));
         } else {
-            ans.push(EvaluationAnswer::Completion(str.trim().to_string()));
+            ans.push(Answer::Completion(str.trim().to_string()));
         }
     }
     let complete = form.fill(ans);
@@ -123,7 +107,7 @@ async fn submit(context: &Context, item: &EvaluationListItem) {
     std::io::stdout().flush().unwrap();
     let _ = std::io::stdin().read_line(&mut String::new()).unwrap();
 
-    match tes.submit_evaluation(complete).await {
+    match tes.submit_form(complete).await {
         Ok(_) => println!("[Info]::<TES>: Submit successfully"),
         Err(e) => eprintln!("[Error]::<TES>: Submit failed: {e}"),
     }
@@ -138,36 +122,35 @@ pub async fn auto(context: &Context) {
     std::io::stdout().flush().unwrap();
     let _ = std::io::stdin().read_line(&mut String::new()).unwrap();
 
-    login(context).await;
     println!("[Info]::<TES>: ======================= Auto fill start =======================");
     let tes = context.tes();
 
-    let list = match tes.get_evaluation_list().await {
-        Ok(list) => list
-            .into_iter()
-            .filter(|item| !item.state)
-            .collect::<Vec<EvaluationListItem>>(),
+    let tasks = match tes.get_task().await {
+        Ok(t) => t,
         Err(e) => {
-            eprintln!("[Error]::<TES>: Get list failed: {e}");
+            eprintln!("[Error]::<TES>: Get task failed: {e}");
             return;
         }
     };
 
-    for l in list {
+    for t in tasks {
+        if t.state {
+            continue;
+        }
         println!(
             "[Info]::<TES>: Course: {}, Teacher: {}",
-            l.course, l.teacher
+            t.course, t.teacher
         );
-        let form = match tes.get_evaluation_form(&l).await {
+        let form = match tes.get_form(&t).await {
             Ok(f) => f,
             Err(e) => {
                 eprintln!("[Error]::<TES>: Get form failed: {e}");
-                return;
+                continue;
             }
         };
         let complete = form.fill_default();
         println!("[Info]::<TES>: Finall score is {}", complete.score());
-        match tes.submit_evaluation(complete).await {
+        match tes.submit_form(complete).await {
             Ok(_) => println!("[Info]::<TES>: Submit successfully"),
             Err(e) => eprintln!("[Error]::<TES>: Submit failed: {e}"),
         }

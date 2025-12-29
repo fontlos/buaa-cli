@@ -8,7 +8,7 @@ use crate::utils;
 
 pub async fn query(context: &Context, all: bool) {
     let boya = context.boya();
-    let courses = match boya.query_courses().await {
+    let courses = match boya.query_courses(1, 10).await {
         Ok(courses) => courses,
         Err(e) => {
             eprintln!("[Error]::<Boya>: Query failed: {e}");
