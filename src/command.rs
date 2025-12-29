@@ -51,12 +51,10 @@ pub enum BoyaSub {
     Drop { id: u32 },
     /// Check-in/out by ID, Only for courses that can check-in/out by self
     Check { id: u32 },
-    /// Query statistics information, use `-s` to show selected courses
-    Status {
-        #[arg(short, long)]
-        /// By default, only statistic information is displayed
-        selected: bool,
-    },
+    /// Query selected courses
+    Selected,
+    /// Query statistics information
+    Status,
 }
 
 #[derive(Parser, Debug)]

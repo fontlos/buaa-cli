@@ -170,28 +170,28 @@ pub async fn check(context: &Context, id: u32) {
     println!("[Info]::<Boya>: Check-out has passed");
 }
 
-pub async fn status(context: &Context, selected: bool) {
+pub async fn selected(context: &Context) {
     let boya = context.boya();
-    if selected {
-        // 完全成功或失败就直接返回, 否则尝试刷新登陆状态
-        match boya.query_selected(None).await {
-            Ok(s) => {
-                println!("[Info]::<Boya>: Selected courses:");
-                print_selected(&s);
-            }
-            Err(e) => {
-                eprintln!("[Error]::<Boya>: Query failed: {e}");
-            }
+    match boya.query_selected(None).await {
+        Ok(s) => {
+            println!("[Info]::<Boya>: Selected courses:");
+            print_selected(&s);
         }
-    } else {
-        match boya.query_statistic().await {
-            Ok(s) => {
-                println!("[Info]::<Boya>: Statistic information:");
-                print_statistic(&s);
-            }
-            Err(e) => {
-                eprintln!("[Error]::<Boya>: Query failed: {e}");
-            }
+        Err(e) => {
+            eprintln!("[Error]::<Boya>: Query failed: {e}");
+        }
+    }
+}
+
+pub async fn status(context: &Context) {
+    let boya = context.boya();
+    match boya.query_statistic().await {
+        Ok(s) => {
+            println!("[Info]::<Boya>: Statistic information:");
+            print_statistic(&s);
+        }
+        Err(e) => {
+            eprintln!("[Error]::<Boya>: Query failed: {e}");
         }
     }
 }

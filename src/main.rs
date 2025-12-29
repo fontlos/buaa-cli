@@ -66,8 +66,11 @@ async fn main() {
             BoyaSub::Check { id } => {
                 boya::check(&context, id).await;
             }
-            BoyaSub::Status { selected } => {
-                boya::status(&context, selected).await;
+            BoyaSub::Selected => {
+                boya::selected(&context).await;
+            }
+            BoyaSub::Status => {
+                boya::status(&context).await;
             }
         },
         Commands::Class(Class { command }) => match command {
