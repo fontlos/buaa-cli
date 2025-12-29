@@ -41,6 +41,9 @@ pub enum BoyaSub {
         #[arg(short, long)]
         /// By default, only optional courses are displayed
         all: bool,
+        /// Page number (Default 1)
+        #[arg(short, long, default_value_t = 1)]
+        page: u8,
     },
     /// Selete by ID immediately. No guarantee for valid token
     Select { id: u32 },

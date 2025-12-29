@@ -54,8 +54,8 @@ async fn main() {
             };
         }
         Commands::Boya(Boya { command }) => match command {
-            BoyaSub::Query { all } => {
-                boya::query(&context, all).await;
+            BoyaSub::Query { all , page} => {
+                boya::query(&context, all, page).await;
             }
             BoyaSub::Select { id } => {
                 boya::select(&context, id).await;
