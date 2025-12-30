@@ -1,6 +1,14 @@
 # BUAA Cli: Powerful tool to Make BUAA Great Again
 
-## [v0.3.2]
+## [v0.3.3] - 2025-12-30
+
+- Fix
+  - `class` command is broken due to server bad update
+    - Server NGINX was misconfigured, causing all `/app/` paths on port `8346` to be mounted under `/app/app/`. And change to port `8347` to bypass
+- Chore
+  - Update `buaa_api`
+
+## [v0.3.2] - 2025-12-29
 
 - Feat
   - Add `CanCheck` field in `buaa boya query` print table
