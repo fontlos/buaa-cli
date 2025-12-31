@@ -21,7 +21,7 @@ async fn main() {
         Err(_) => {
             eprintln!("[Warning]: Failed to read cookies.json, use default");
             CookieStore::default()
-        },
+        }
     };
     let cred_path = path.join("cred.json");
     let cred = match CredentialStore::from_file(cred_path) {
@@ -29,7 +29,7 @@ async fn main() {
         Err(_) => {
             eprintln!("[Warning]: Failed to read cred.json, use default");
             CredentialStore::default()
-        },
+        }
     };
 
     let cli = Cli::parse();
@@ -54,7 +54,7 @@ async fn main() {
             };
         }
         Commands::Boya(Boya { command }) => match command {
-            BoyaSub::Query { all , page} => {
+            BoyaSub::Query { all, page } => {
                 boya::query(&context, all, page).await;
             }
             BoyaSub::Select { id } => {
@@ -102,9 +102,9 @@ async fn main() {
         },
     }
     match context.save_auth(&path) {
-        Ok(_) => {},
+        Ok(_) => {}
         Err(_) => {
             eprintln!("[Error]: Failed to save auth data");
-        },
+        }
     };
 }

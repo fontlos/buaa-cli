@@ -3,7 +3,21 @@ use buaa_api::api::tes::{Answer, Task};
 
 use std::io::Write;
 
+fn print_warning() {
+    let mut builder = tabled::builder::Builder::new();
+    let warning = "Warning!: Due to the poor design of the evaluation system server,
+using this may cause the evaluation button on the web page to become unclickable.
+But don't worry, the evaluation data has been submitted correctly.
+If you want to view the evaluation results on the web page,
+you can remove the 'disabled' attribute of the button in the browser console,
+and you'll be able to click it.
+Or you might wait a little longer, and it may return to normal.";
+    builder.push_record([warning]);
+    crate::utils::print_table(builder);
+}
+
 pub async fn list(context: &Context, all: bool) {
+    print_warning();
     let tes = context.tes();
     let tasks = match tes.get_task().await {
         Ok(list) => list,
@@ -95,10 +109,29 @@ async fn fill(context: &Context, task: &Task) {
             };
             ans.push(Answer::Choice(index));
         } else {
-            ans.push(Answer::Completion(str.trim().to_string()));
+            let str = str.trim();
+            if str.is_empty() {
+                ans.push(Answer::Completion(None));
+            } else {
+                ans.push(Answer::Completion(Some(str.to_string())));
+            }
         }
     }
-    let complete = form.fill(ans);
+    let mut complete = form.fill(ans);
+
+    if complete.is_perfect() {
+        println!("[Info]::<TES>: Perfect score! Need reason, between 10 and 200 characters.");
+        let mut str = String::new();
+        std::io::stdin().read_line(&mut str).unwrap();
+        complete.set_reason(str.trim().to_string()).unwrap();
+    }
+
+    if complete.is_unqualified() {
+        println!("[Warning]::<TES>: Unqualified score! Need reason, between 10 and 200 characters.");
+        let mut str = String::new();
+        std::io::stdin().read_line(&mut str).unwrap();
+        complete.set_reason(str.trim().to_string()).unwrap();
+    }
 
     print!(
         "[Info]::<TES>: Finall score is {}. Press Enter to submit",
@@ -116,9 +149,8 @@ async fn fill(context: &Context, task: &Task) {
 }
 
 pub async fn auto(context: &Context) {
-    print!(
-        "Warning!!! This function maybe not work as expected, and it will be fixed untill the next term. Press Enter to continue"
-    );
+    print_warning();
+    print!("Warning!!! Press Enter to continue");
     std::io::stdout().flush().unwrap();
     let _ = std::io::stdin().read_line(&mut String::new()).unwrap();
 

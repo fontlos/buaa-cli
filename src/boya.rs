@@ -1,7 +1,5 @@
 use buaa_api::Context;
-use buaa_api::api::boya::{
-    Campus, Capacity, Category, Course, Schedule, Selected, Statistic,
-};
+use buaa_api::api::boya::{Campus, Capacity, Category, Course, Schedule, Selected, Statistic};
 use tokio::time::Duration;
 
 use crate::utils;
@@ -254,7 +252,15 @@ where
 {
     let mut builder = tabled::builder::Builder::new();
     builder.push_record([
-        "ID", "Course", "Position", "Time", "Kind", "Capacity", "Campus", "IsSelected", "CanCheck"
+        "ID",
+        "Course",
+        "Position",
+        "Time",
+        "Kind",
+        "Capacity",
+        "Campus",
+        "IsSelected",
+        "CanCheck",
     ]);
     for c in data {
         builder.push_record([

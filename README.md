@@ -110,15 +110,21 @@ buaa class checkin <Schedule ID>
 buaa class checkin <Date>
 ```
 
-## Teacher Evaluation System (Repairing)
+## Teacher Evaluation System
+
+**Warning!**: Due to the poor design of the evaluation system server,
+using this may cause the evaluation button on the web page to become unclickable.
+But don't worry, the evaluation data has been submitted correctly.
+If you want to view the evaluation results on the web page,
+you can remove the 'disabled' attribute of the button in the browser console,
+and you'll be able to click it.
+Or you might wait a little longer, and it may return to normal.
 
 ```sh
 # List the forms that need to be filled out and use the index to fill out the specified form
 buaa tes list
 
 # Automatically fill all forms
-# Warning: This command may not be as expected in the test, the score is correct,
-# but it will show an abnormality, and will try to fix it the next time the evaluation system is turned on
 buaa tes auto
 ```
 

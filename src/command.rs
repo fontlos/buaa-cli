@@ -1,7 +1,7 @@
 use clap::{Parser, Subcommand};
 
 #[derive(Debug, Parser)]
-#[command(version = "0.3.3", about = "A cli for BUAA")]
+#[command(version = "0.3.4", about = "A cli for BUAA")]
 pub struct Cli {
     #[command(subcommand)]
     pub command: Commands,
@@ -22,7 +22,7 @@ pub enum Commands {
     Boya(Boya),
     #[command(about = "Smart Classroom")]
     Class(Class),
-    #[command(about = "Teacher Evaluation system")]
+    #[command(about = "Teacher Evaluation system (With some Warnings)")]
     Tes(Tes),
     #[command(about = "BUAA-Wifi")]
     Wifi(Wifi),
@@ -89,8 +89,9 @@ pub struct Tes {
 
 #[derive(Debug, Subcommand)]
 pub enum TesSub {
-    /// Warning!!! No Tested!!!
+    /// Auto fill all unfilled forms with 93 score
     Auto,
+    /// List and fill manually
     List {
         #[arg(short, long)]
         /// By default, only unfilled forms are displayed
