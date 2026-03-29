@@ -127,7 +127,9 @@ async fn fill(context: &Context, task: &Task) {
     }
 
     if complete.is_unqualified() {
-        println!("[Warning]::<TES>: Unqualified score! Need reason, between 10 and 200 characters.");
+        println!(
+            "[Warning]::<TES>: Unqualified score! Need reason, between 10 and 200 characters."
+        );
         let mut str = String::new();
         std::io::stdin().read_line(&mut str).unwrap();
         complete.set_reason(str.trim().to_string()).unwrap();

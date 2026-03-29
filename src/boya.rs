@@ -1,8 +1,9 @@
 use buaa_api::Context;
-use buaa_api::api::boya::{Campus, Capacity, Category, Course, Schedule, Selected, Statistic};
+use buaa_api::api::boya::{
+    Campus, Capacity, Category, Course, Schedule, Selected, Semester, Statistic,
+};
+use buaa_api::time::DateTime;
 use tokio::time::Duration;
-
-use crate::utils;
 
 pub async fn query(context: &Context, all: bool, page: u8) {
     let boya = context.boya();
@@ -17,7 +18,7 @@ pub async fn query(context: &Context, all: bool, page: u8) {
     if all {
         print_course(courses.iter());
     } else {
-        let time = utils::get_datetime();
+        let time = DateTime::now();
         let courses = courses.iter().filter(|course| {
             course.selected
                 || (course.capacity.current < course.capacity.max
@@ -44,9 +45,9 @@ pub async fn select(context: &Context, id: u32) {
         return;
     }
 
-    let now = utils::get_datetime();
+    let now = DateTime::now();
     let duration = course.schedule.select_start - now;
-    let second = duration.whole_seconds();
+    let second = duration.as_secs();
 
     // 如果时间大于 10 那么就等待并提前十秒重置token, 否则直接选课
     if second > 10 {
@@ -66,9 +67,9 @@ pub async fn select(context: &Context, id: u32) {
     }
 
     // 之前少等待了10秒, 现在计算还需等待多久
-    let now = utils::get_datetime();
+    let now = DateTime::now();
     let duration = course.schedule.select_start - now;
-    let second = duration.whole_seconds();
+    let second = duration.as_secs();
     if second > 0 {
         let duration = Duration::from_secs(second as u64);
         tokio::time::sleep(duration).await;
@@ -126,11 +127,11 @@ pub async fn check(context: &Context, id: u32) {
             return;
         }
     };
-    let now = utils::get_datetime();
+    let now = DateTime::now();
     if now < config.checkin_end {
         if now < config.checkin_start {
             let duration = config.checkin_start - now;
-            let second = duration.whole_seconds();
+            let second = duration.as_secs();
             let duration = Duration::from_secs(second as u64);
             println!("[Info]::<Boya>: Waiting for {second} seconds to check-in");
             tokio::time::sleep(duration).await;
@@ -150,7 +151,7 @@ pub async fn check(context: &Context, id: u32) {
     if now < config.checkout_end {
         if now < config.checkout_start {
             let duration = config.checkout_start - now;
-            let second = duration.whole_seconds();
+            let second = duration.as_secs();
             let duration = Duration::from_secs(second as u64);
             println!("[Info]::<Boya>: Waiting for {second} seconds to check-out");
             tokio::time::sleep(duration).await;
@@ -170,7 +171,7 @@ pub async fn check(context: &Context, id: u32) {
 
 pub async fn selected(context: &Context) {
     let boya = context.boya();
-    match boya.query_selected(None).await {
+    match boya.query_selected(Semester::estimated_current()).await {
         Ok(s) => {
             println!("[Info]::<Boya>: Selected courses:");
             print_selected(&s);
@@ -205,13 +206,10 @@ fn tabled_location(s: &str) -> String {
 }
 
 fn tabled_schedule(time: &Schedule) -> String {
-    let format_string =
-        time::format_description::parse("[year].[month].[day] [hour]:[minute]").unwrap();
-
-    let formatted_course_start = time.course_start.format(&format_string).unwrap();
-    let formatted_course_end = time.course_end.format(&format_string).unwrap();
-    let formatted_select_start = time.select_start.format(&format_string).unwrap();
-    let formatted_select_end = time.select_end.format(&format_string).unwrap();
+    let formatted_course_start = time.course_start.format_short();
+    let formatted_course_end = time.course_end.format_short();
+    let formatted_select_start = time.select_start.format_short();
+    let formatted_select_end = time.select_end.format_short();
 
     format!(
         "   CourseTime\n{formatted_course_start}\n{formatted_course_end}\n   SelectTime\n{formatted_select_start}\n{formatted_select_end}"

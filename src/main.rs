@@ -5,7 +5,7 @@ mod tes;
 mod utils;
 mod wifi;
 
-use buaa_api::exports::ContextBuilder;
+use buaa_api::ContextBuilder;
 use buaa_api::store::cookies::CookieStore;
 use buaa_api::store::cred::CredentialStore;
 use clap::Parser;

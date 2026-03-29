@@ -1,5 +1,14 @@
 # BUAA Cli: Powerful tool to Make BUAA Great Again
 
+## [v0.3.5] - 2026-03-29
+
+- Fix
+  - `class` command is broken due to server bad update
+    - Now `class checkin` is based on server internal time which is not standard UTC
+- Chore
+  - Update `buaa_api`
+  - Update other dependencies
+
 ## [v0.3.4] - 2025-12-31
 
 - Fix

@@ -1,14 +1,10 @@
 use buaa_api::Context;
 use buaa_api::crypto::rand::{Rng, WyRng};
-use time::format_description;
+use buaa_api::time::{DateTime, Month};
 use tokio::time::Duration;
 
-use crate::utils;
-
 pub async fn auto(context: &Context) {
-    let time = utils::get_datetime();
-    let format = format_description::parse("[year][month][day]").unwrap();
-    let date = time.format(&format).unwrap();
+    let date = DateTime::now();
 
     checkin_date(context, &date).await;
     println!("[Info]::<Smart Classroom>: Auto checkin finished");
@@ -35,7 +31,8 @@ pub async fn query(context: &Context, id: String) {
         }
         // Date. Format: YYYYMMDD
         8 => {
-            let schedule = match class.query_schedule(&id).await {
+            let date = parse_datetime(&id).unwrap();
+            let schedule = match class.query_schedule(&date).await {
                 Ok(s) => s,
                 Err(e) => {
                     eprintln!("[Error]::<Smart Classroom>: Query course failed: {e}");
@@ -86,7 +83,8 @@ pub async fn checkin(context: &Context, id: &str) {
         }
         // Date
         8 => {
-            checkin_date(context, id).await;
+            let date = parse_datetime(id).unwrap();
+            checkin_date(context, &date).await;
         }
         _ => {
             println!("[Error]::<Smart Classroom>: Invalid ID");
@@ -94,7 +92,7 @@ pub async fn checkin(context: &Context, id: &str) {
     }
 }
 
-pub async fn checkin_date(context: &Context, date: &str) {
+pub async fn checkin_date(context: &Context, date: &DateTime) {
     let class = context.class();
 
     let schedule = match class.query_schedule(date).await {
@@ -106,15 +104,15 @@ pub async fn checkin_date(context: &Context, date: &str) {
     };
 
     for s in &schedule {
-        if s.status == 0 {
+        if !s.status {
             println!(
                 "[Info]::<Smart Classroom>: Checkin for {} ID: {}",
                 s.name, s.id
             );
-            let now = utils::get_datetime();
+            let now = DateTime::now();
             // 距离签到开始的时间, 上课前十分钟
             let duration = s.time - now;
-            let second = duration.whole_seconds() - 600;
+            let second = duration.as_secs() - 600;
             // 如果已经开始签到就不等待了直接签到
             if second > 0 {
                 // 如果是预签到, 我们尽可能早一点, 但加上随机扰动, 模拟人类行为
@@ -140,4 +138,13 @@ pub async fn checkin_schedule(context: &Context, id: &str) {
             eprintln!("[Error]::<Smart Classroom>: Checkin failed: {e}");
         }
     }
+}
+
+/// 解析 YYYYMMDD 格式的日期字符串
+fn parse_datetime(s: &str) -> Result<DateTime, &'static str> {
+    let year = s[0..4].parse::<i32>().map_err(|_| "Invalid year")?;
+    let month = s[4..6].parse::<u32>().map_err(|_| "Invalid month")?;
+    let month = Month::from_num(month).ok_or_else(|| "Invalid month")?;
+    let day = s[6..8].parse::<u32>().map_err(|_| "Invalid day")?;
+    DateTime::from_calendar(year, month, day, 0, 0, 0)
 }
