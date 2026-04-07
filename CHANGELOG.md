@@ -1,5 +1,10 @@
 # BUAA Cli: Powerful tool to Make BUAA Great Again
 
+## [v0.3.6] - 2026-04-07
+
+- Fix
+  - Time overflow in `boya` or `class`, which cause waiting for almost `u64::MAX` seconds
+
 ## [v0.3.5] - 2026-03-29
 
 - Fix

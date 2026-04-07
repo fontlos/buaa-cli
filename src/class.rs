@@ -109,19 +109,20 @@ pub async fn checkin_date(context: &Context, date: &DateTime) {
                 "[Info]::<Smart Classroom>: Checkin for {} ID: {}",
                 s.name, s.id
             );
+            // 签到开始的时间, 上课前十分钟
+            let checkin_time = s.time - Duration::from_secs(600);
             let now = DateTime::now();
-            // 距离签到开始的时间, 上课前十分钟
-            let duration = s.time - now;
-            let second = duration.as_secs() - 600;
-            // 如果已经开始签到就不等待了直接签到
-            if second > 0 {
-                // 如果是预签到, 我们尽可能早一点, 但加上随机扰动, 模拟人类行为
-                // 考虑到准时可能导致失败, 我们加上一个 5 到 240 秒的随机扰动
+            // 时间未到才等待, 不能做减法, 因为默认返回绝对值
+            if checkin_time > now {
+                // 考虑到准时可能导致失败, 我们加上一个 5 到 240 秒的随机扰动, 模拟人类行为
                 let mut rng = WyRng::new();
                 let rand = rng.random_range(5u8..=240);
-                let wait = second as u64 + rand as u64;
-                println!("[Info]::<Smart Classroom>: Waiting for {wait} seconds");
-                tokio::time::sleep(Duration::from_secs(wait)).await;
+                let wait = checkin_time - now + Duration::from_secs(rand as u64);
+                println!(
+                    "[Info]::<Smart Classroom>: Waiting for {} seconds",
+                    wait.as_secs()
+                );
+                tokio::time::sleep(wait).await;
             }
             checkin_schedule(context, &s.id).await;
         }

@@ -45,16 +45,15 @@ pub async fn select(context: &Context, id: u32) {
         return;
     }
 
+    // 提前十秒准备
+    let prepare = course.schedule.select_start - Duration::from_secs(10);
     let now = DateTime::now();
-    let duration = course.schedule.select_start - now;
-    let second = duration.as_secs();
 
-    // 如果时间大于 10 那么就等待并提前十秒重置token, 否则直接选课
-    if second > 10 {
-        let duration = Duration::from_secs((second - 10) as u64);
-        println!("[Info]::<Boya>: Waiting for {second} seconds");
+    // 如果预备时间未到, 就等待提前刷新 Token, 因为时效只有十分钟
+    if prepare > now {
+        let duration = prepare - now;
+        println!("[Info]::<Boya>: Waiting for {} seconds", duration.as_secs());
         tokio::time::sleep(duration).await;
-        // 提前手动刷新 token
         match boya.login().await {
             Ok(()) => {
                 println!("[Info]::<Boya>: Refresh token successfully");
@@ -66,12 +65,10 @@ pub async fn select(context: &Context, id: u32) {
         };
     }
 
-    // 之前少等待了10秒, 现在计算还需等待多久
+    // 以防万一如果之前等待刷新过 Token, 我们这里再次计算需要多久
     let now = DateTime::now();
-    let duration = course.schedule.select_start - now;
-    let second = duration.as_secs();
-    if second > 0 {
-        let duration = Duration::from_secs(second as u64);
+    if course.schedule.select_start > now {
+        let duration = course.schedule.select_start - now;
         tokio::time::sleep(duration).await;
     }
 
@@ -112,6 +109,7 @@ pub async fn drop(context: &Context, id: u32) {
     }
 }
 
+// TODO: 需要随机时间扰动
 pub async fn check(context: &Context, id: u32) {
     let boya = context.boya();
     let config = match boya.query_course(id).await {
@@ -128,12 +126,15 @@ pub async fn check(context: &Context, id: u32) {
         }
     };
     let now = DateTime::now();
+    // 检查是否签到时间已过
     if now < config.checkin_end {
+        // 检查是否在签到时间内
         if now < config.checkin_start {
             let duration = config.checkin_start - now;
-            let second = duration.as_secs();
-            let duration = Duration::from_secs(second as u64);
-            println!("[Info]::<Boya>: Waiting for {second} seconds to check-in");
+            println!(
+                "[Info]::<Boya>: Waiting for {} seconds to check-in",
+                duration.as_secs()
+            );
             tokio::time::sleep(duration).await;
         }
         match boya.checkin_course(id, &config.coordinate).await {
@@ -148,12 +149,15 @@ pub async fn check(context: &Context, id: u32) {
 
     println!("[Info]::<Boya>: Check-in has passed");
 
+    // 检查是否签退时间已过
     if now < config.checkout_end {
+        // 检查是否在签退时间内
         if now < config.checkout_start {
             let duration = config.checkout_start - now;
-            let second = duration.as_secs();
-            let duration = Duration::from_secs(second as u64);
-            println!("[Info]::<Boya>: Waiting for {second} seconds to check-out");
+            println!(
+                "[Info]::<Boya>: Waiting for {} seconds to check-out",
+                duration.as_secs()
+            );
             tokio::time::sleep(duration).await;
         }
         match boya.checkout_course(id, &config.coordinate).await {
