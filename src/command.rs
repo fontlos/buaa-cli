@@ -1,7 +1,7 @@
 use clap::{Parser, Subcommand};
 
 #[derive(Debug, Parser)]
-#[command(version = "0.3.6", about = "A cli for BUAA")]
+#[command(version = env!("CARGO_PKG_VERSION"), about = "A cli for BUAA")]
 pub struct Cli {
     #[command(subcommand)]
     pub command: Commands,

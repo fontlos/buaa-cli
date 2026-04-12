@@ -1,5 +1,10 @@
 # BUAA Cli: Powerful tool to Make BUAA Great Again
 
+## [v0.3.7] - 2026-04-12
+
+- Fix
+  - `wifi` command break caused by server update
+
 ## [v0.3.6] - 2026-04-07
 
 - Fix
