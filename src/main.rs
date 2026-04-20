@@ -1,6 +1,7 @@
 mod boya;
 mod class;
 mod command;
+mod exam;
 mod tes;
 mod utils;
 mod wifi;
@@ -84,6 +85,9 @@ async fn main() {
                 class::checkin(&context, &id).await;
             }
         },
+        Commands::Exam => {
+            exam::exam(&context).await;
+        }
         Commands::Tes(Tes { command }) => match command {
             TesSub::Auto => {
                 tes::auto(&context).await;

@@ -22,6 +22,8 @@ pub enum Commands {
     Boya(Boya),
     #[command(about = "Smart Classroom")]
     Class(Class),
+    #[command(about = "Exam List")]
+    Exam,
     #[command(about = "Teacher Evaluation system (With some Warnings)")]
     Tes(Tes),
     #[command(about = "BUAA-Wifi")]

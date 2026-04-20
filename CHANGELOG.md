@@ -1,5 +1,10 @@
 # BUAA Cli: Powerful tool to Make BUAA Great Again
 
+## [v0.3.8] - 2026-04-20
+
+- Feat
+  - Add `buaa exam` command to query exam schedule
+
 ## [v0.3.7] - 2026-04-12
 
 - Fix
