@@ -1,5 +1,15 @@
 # BUAA Cli: Powerful tool to Make BUAA Great Again
 
+## [v0.4.0] - 2026-05-23
+
+- Feat
+  - Add automated VPN mode for `buaa class` (experimental)
+- Refactor
+  - New method to detect WiFi
+- Chore
+  - Update `buaa_api`
+  - Update other dependencies
+
 ## [v0.3.8] - 2026-04-20
 
 - Feat
