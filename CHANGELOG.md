@@ -1,6 +1,6 @@
 # BUAA Cli: Powerful tool to Make BUAA Great Again
 
-## [v0.4.0] - 2026-05-23
+## [v0.4.0] - 2026-05-27
 
 - Feat
   - Add automated VPN mode for `buaa class` (experimental)
