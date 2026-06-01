@@ -1,5 +1,15 @@
 # BUAA Cli: Powerful tool to Make BUAA Great Again
 
+## [v0.4.1] - 2026-06-01
+
+- Fix(Breaking)
+  - `class` command break caused by server update
+    - The login and checkin URL path inexplicably changed again, and `Sessionid` is once again a required request header
+    - This break VPN mode for `buaa class`
+- Chore
+  - Update `buaa_api`
+  - Update other dependencies
+
 ## [v0.4.0] - 2026-05-27
 
 - Feat
