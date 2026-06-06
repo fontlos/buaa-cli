@@ -1,5 +1,13 @@
 # BUAA Cli: Powerful tool to Make BUAA Great Again
 
+## [v0.4.2] - 2026-06-06
+
+- Fix
+  - Fix VPN mode for `buaa class`
+- Chore
+  - Update `buaa_api`
+  - Update other dependencies
+
 ## [v0.4.1] - 2026-06-01
 
 - Fix(Breaking)
