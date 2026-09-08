@@ -14,7 +14,7 @@ pub async fn query(context: &Context, id: String) {
     let class = context.class();
     match id.len() {
         // Course ID
-        5 => {
+        5 | 6 => {
             let schedules = match class.query_course_schedule(&id).await {
                 Ok(schedule) => schedule,
                 Err(e) => {
@@ -53,8 +53,8 @@ pub async fn query(context: &Context, id: String) {
             }
             crate::utils::print_table(builder);
         }
-        // Term ID
-        9 => {
+        // Term ID, e.g., 202520261, 2026202701.
+        9 | 10 => {
             let courses = match class.query_course(&id).await {
                 Ok(courses) => courses,
                 Err(e) => {

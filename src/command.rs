@@ -72,8 +72,11 @@ pub enum ClassSub {
     /// Query schedules by Date, term courses by Term ID, or course schedules by Course ID
     Query {
         /// Date (format: YYYYMMDD),
-        /// Term ID (e.g. `202320242` is 2024 spring term, `202420251` is 2024 autumn term)
-        /// or Course ID (from query term courses)
+        /// Term ID (e.g. `202320242` is 2024 spring term,
+        /// `202420251` is 2024 autumn term
+        /// Note: After 2026.09, the term ID will have 10 digits,
+        /// e.g. `2026202701` is 2026 autumn term)
+        /// or Course ID (from query term courses, 5 or 6 digits)
         id: String,
     },
     /// Checkin with Schedule ID or Date (format: YYYYMMDD)

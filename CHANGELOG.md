@@ -1,5 +1,10 @@
 # BUAA Cli: Powerful tool to Make BUAA Great Again
 
+## [v0.4.3] - 2026-09-08
+
+- Fix
+  - `class query` adapt more id formats. After 2026.09, the term ID will have 10 digits, e.g. `2026202701` is 2026 autumn term, and course id can have 6 digits
+
 ## [v0.4.2] - 2026-06-06
 
 - Fix
