@@ -1,10 +1,10 @@
 [package]
 name = "buaa"
-version = "0.4.4"
+version = "0.4.5"
 edition = "2024"
 
 [dependencies]
-buaa_api = { git = "https://github.com/fontlos/buaa-api", rev = "a63712f"}
+buaa_api = { git = "https://github.com/fontlos/buaa-api", rev = "c77f854"}
 # buaa_api = { path = "../buaa-api" }
 clap = { version = "4.6.7", features = ["derive"] }
 serde = { version = "1.0.229", features = ["derive"] }

@@ -1,6 +1,13 @@
 # BUAA Cli: Powerful tool to Make BUAA Great Again
 
-## [v0.4.4] - 2026-06-06
+## [v0.4.5] - 2026-09-24
+
+- Fix
+  - Fix `buaa tes` command
+- Chore
+  - Update `buaa_api`
+
+## [v0.4.4] - 2026-09-15
 
 - Fix
   - Fix VPN mode credentials being refreshed too late for `buaa class`
