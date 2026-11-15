@@ -1,4 +1,5 @@
 mod boya;
+mod captcha;
 mod class;
 mod command;
 mod exam;
@@ -11,6 +12,9 @@ use buaa_api::store::cookies::CookieStore;
 use buaa_api::store::cred::CredentialStore;
 use clap::Parser;
 
+use std::sync::Arc;
+
+use captcha::StdinSolver;
 use command::{Boya, BoyaSub, Class, ClassSub, Cli, Commands, Tes, TesSub, Wifi, WifiSub};
 
 #[tokio::main]
@@ -38,6 +42,7 @@ async fn main() {
     let context = ContextBuilder::new()
         .cookies(cookies)
         .cred(cred)
+        .captcha(Arc::new(StdinSolver))
         .tls(!cli.disable_tls)
         .build();
 

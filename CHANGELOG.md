@@ -1,5 +1,15 @@
 # BUAA Cli: Powerful tool to Make BUAA Great Again
 
+## [v0.5.0] - 2026-11-15
+
+- Feat
+  - (Breaking) Adapt login when not on campus. Need pass captcha which will be wrote in binary path
+- Fix
+  - Fix SSO login failed when not on campus. Detail see https://github.com/fontlos/buaa-api/issues/318
+- Chore
+  - Update `buaa_api`
+  - Update other dependencies
+
 ## [v0.4.5] - 2026-09-24
 
 - Fix
